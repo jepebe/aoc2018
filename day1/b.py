@@ -3,7 +3,7 @@ from itertools import cycle
 import sys
 
 lines = sys.stdin.readlines()
-shift = cycle([int(l) for l in lines])
+shift = cycle(map(int, lines))
 
 f = 0
 freq = set()
