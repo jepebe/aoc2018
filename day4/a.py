@@ -85,7 +85,7 @@ def calc_stats(duty):
     return stats
 
 
-def find_dict_max(dct, key):
+def dict_max(dct, key):
     max_id = 0
     max_value = 0
     for id, value in dct.items():
@@ -99,8 +99,8 @@ events = parse_events(lines)
 duty = process_events(events)
 stats = calc_stats(duty)
 
-strategy_1 = find_dict_max(stats, 'sum_sleep')
+strategy_1 = dict_max(stats, 'sum_sleep')
 print(strategy_1, strategy_1['max_sleep_index'] * strategy_1['id'])
 
-strategy_2 = find_dict_max(stats, 'max_sleep')
+strategy_2 = dict_max(stats, 'max_sleep')
 print(strategy_2, strategy_2['max_sleep_index'] * strategy_2['id'])
