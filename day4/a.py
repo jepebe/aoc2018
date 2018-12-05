@@ -1,5 +1,4 @@
 import sys
-import dateutil.parser
 
 lines = sys.stdin.readlines()
 
@@ -20,8 +19,7 @@ def parse_events(lines):
 
     for line in lines:
         line = line.strip()
-        date = dateutil.parser.parse(line[1:17])
-
+        date = line[1:17]
         event = line[19:]
         events[date] = event
     return events
@@ -33,6 +31,10 @@ def fill(start, stop, duty):
 
     for x in range(start, stop):
         duty[x] += 1
+
+
+def minute(date):
+    return int(date[14:16])
 
 
 def process_events(events):
@@ -57,10 +59,10 @@ def process_events(events):
                 duty[guard_id] = [0] * 60
 
         elif event.startswith('falls'):
-            start = date.minute
+            start = minute(date)
 
         else:
-            stop = date.minute
+            stop = minute(date)
             fill(start, stop, duty[guard_id])
 
     # did not wake up within the hour
