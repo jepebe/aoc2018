@@ -30,17 +30,9 @@ def create_graph(lines):
     return graph, sorted(roots)
 
 
-def dependencies_finished(node, done):
-    deps = node['p']
-    for n in deps:
-        if n not in done:
-            return False
-    return True
-
-
 def find_free_worker(workers):
     time = workers['time']
-    for id, worker in workers['workers'].items():
+    for worker in workers['workers'].values():
         if worker['queue'][time] == '.':
             return worker
     return None
@@ -50,9 +42,7 @@ def dedicate_worker(workers, worker, node):
     now = workers['time']
     duration = workers['cost'][node]
 
-    worker['items'].append(node)
-    for i in range(now, now + duration):
-        worker['queue'][i] = node
+    worker['queue'][now:now + duration] = [node] * duration
     worker['time'] = now + duration
 
 
@@ -60,15 +50,10 @@ def step_workers(workers):
     workers['time'] += 1
     time = workers['time']
 
-    for id, worker in workers['workers'].items():
+    for worker in workers['workers'].values():
         q = worker['queue']
         if q[time - 1] != '.' and q[time] == '.':
             workers['done'].append(q[time - 1])
-
-
-def print_state(machine):
-    for w in machine['workers']:
-        print(''.join(machine['workers'][w]['queue']))
 
 
 def queue(machine, node):
@@ -84,12 +69,17 @@ def queue(machine, node):
     machine['queue'].append(node)
 
 
-def process(graph, machine):
+def all_deps_done(machine, node):
+    return all([n in machine['done'] for n in machine['graph'][node]['p']])
+
+
+def process(machine):
     while len(machine['queue']) > 0:
         visited = []
         for node in machine['queue']:
             worker = find_free_worker(machine)
-            if worker and dependencies_finished(graph[node], machine['done']):
+
+            if worker and all_deps_done(machine, node):
                 visited.append(node)
                 machine['processed'].append(node)
                 dedicate_worker(machine, worker, node)
@@ -116,18 +106,18 @@ machine = {
     'graph': graph,
     'queue': roots,
     'workers':
-        {
-            1: {'id': 1, 'queue': ['.'] * worst_case, 'items': [], 'time': 0},
-            2: {'id': 2, 'queue': ['.'] * worst_case, 'items': [], 'time': 0},
-            # 3: {'id': 3, 'queue': ['.'] * worst_case, 'items': [], 'time': 0},
-            # 4: {'id': 4, 'queue': ['.'] * worst_case, 'items': [], 'time': 0},
-            # 5: {'id': 5, 'queue': ['.'] * worst_case, 'items': [], 'time': 0}
-        }
+        {n: {'id': n, 'queue': ['.'] * worst_case, 'time': 0} for n in range(3)}
 }
 
-process(graph, machine)
+process(machine)
 
 print(machine)
+
+
+def print_state(machine):
+    for w in machine['workers']:
+        print(''.join(machine['workers'][w]['queue']))
+
 
 print_state(machine)
 
