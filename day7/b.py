@@ -30,7 +30,7 @@ def create_graph(lines):
     return graph, sorted(roots)
 
 
-def dependencies(node, done):
+def dependencies_finished(node, done):
     deps = node['p']
     for n in deps:
         if n not in done:
@@ -38,7 +38,7 @@ def dependencies(node, done):
     return True
 
 
-def free_worker(workers):
+def find_free_worker(workers):
     time = workers['time']
     for id, worker in workers['workers'].items():
         if worker['queue'][time] == '.':
@@ -88,11 +88,10 @@ def process(graph, machine):
     while len(machine['queue']) > 0:
         visited = []
         for node in machine['queue']:
-
-            if free_worker(machine) and dependencies(graph[node], machine['done']):
+            worker = find_free_worker(machine)
+            if worker and dependencies_finished(graph[node], machine['done']):
                 visited.append(node)
                 machine['processed'].append(node)
-                worker = free_worker(machine)
                 dedicate_worker(machine, worker, node)
 
                 for n in sorted(graph[node]['c']):
