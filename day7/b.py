@@ -5,63 +5,37 @@ lines = sys.stdin.readlines()
 
 # input CABDFGE
 
-class Node(object):
-    parent = []
-    children = []
-
 
 def create_graph(lines):
     graph = {}
-    dependency = {}
-    nodes = set()
     for line in lines:
         before = line[5]
         after = line[36]
 
-        nodes.add(before)
-        nodes.add(after)
-
         if before not in graph:
-            graph[before] = []
+            graph[before] = {'id': before, 'p': [], 'c': []}
 
-        graph[before].append(after)
+        graph[before]['c'].append(after)
 
-        if after not in dependency:
-            dependency[after] = []
+        if after not in graph:
+            graph[after] = {'id': after, 'p': [], 'c': []}
 
-        dependency[after].append(before)
+        graph[after]['p'].append(before)
 
-    node_duration = {node: 60 + ord(node) - ord('A') + 1 for node in nodes}
+    roots = []
+    for key, value in graph.items():
+        if len(value['p']) == 0:
+            roots.append(key)
 
-    return graph, dependency, nodes, node_duration
-
-
-def find_independent(graph):
-    keys = {key for key in graph.keys()}
-    for key in list(keys):
-        for items in graph.values():
-            if key in items:
-                keys.remove(key)
-                break
-    return sorted(list(keys))
+    return graph, sorted(roots)
 
 
-def dependencies(dependency, node, done):
-    deps = dependency[node]
-    for node in deps:
-        if node not in done:
+def dependencies(node, done):
+    deps = node['p']
+    for n in deps:
+        if n not in done:
             return False
     return True
-
-
-def complete_graphs(graph, dependency):
-    final_step = nodes.difference(graph.keys())
-
-    graph[next(iter(final_step))] = []
-
-    independent = find_independent(graph)
-    for node in independent:
-        dependency[node] = []
 
 
 def free_worker(workers):
@@ -92,7 +66,7 @@ def step_workers(workers):
             workers['done'].append(q[time - 1])
 
 
-def state(machine):
+def print_state(machine):
     for w in machine['workers']:
         print(''.join(machine['workers'][w]['queue']))
 
@@ -110,19 +84,18 @@ def queue(machine, node):
     machine['queue'].append(node)
 
 
-def process(graph, dependency, machine):
+def process(graph, machine):
     while len(machine['queue']) > 0:
         visited = []
         for node in machine['queue']:
 
-            if free_worker(machine) and dependencies(dependency, node,
-                                                     machine['done']):
+            if free_worker(machine) and dependencies(graph[node], machine['done']):
                 visited.append(node)
                 machine['processed'].append(node)
                 worker = free_worker(machine)
                 dedicate_worker(machine, worker, node)
 
-                for n in sorted(graph[node]):
+                for n in sorted(graph[node]['c']):
                     queue(machine, n)
 
         for node in visited:
@@ -132,19 +105,17 @@ def process(graph, dependency, machine):
             step_workers(machine)
 
 
-graph, dependency, nodes, node_duration = create_graph(lines)
-complete_graphs(graph, dependency)
-
+graph, roots = create_graph(lines)
+node_duration = {node: 0 + ord(node) - ord('A') + 1 for node in graph.keys()}
 worst_case = sum(node_duration.values())
-
 
 machine = {
     'time': 0,
     'cost': node_duration,
-    'nodes': nodes,
     'processed': [],
     'done': [],
-    'queue': sorted(find_independent(graph)),
+    'graph': graph,
+    'queue': roots,
     'workers':
         {
             1: {'id': 1, 'queue': ['.'] * worst_case, 'items': [], 'time': 0},
@@ -153,14 +124,13 @@ machine = {
             # 4: {'id': 4, 'queue': ['.'] * worst_case, 'items': [], 'time': 0},
             # 5: {'id': 5, 'queue': ['.'] * worst_case, 'items': [], 'time': 0}
         }
-
 }
 
-process(graph, dependency, machine)
+process(graph, machine)
 
 print(machine)
 
-state(machine)
+print_state(machine)
 
 
 def dict_max(dct, key):
@@ -173,4 +143,4 @@ def dict_max(dct, key):
     return dct[max_id]
 
 
-print('max', dict_max(machine['workers'], 'time'))
+print('max', dict_max(machine['workers'], 'time')['time'])
