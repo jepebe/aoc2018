@@ -23,25 +23,25 @@ def remove(c, k):
     return c == k or c == k.upper()
 
 
+def optimize(line):
+    new_line = []
+    for b in line:
+        if new_line:
+            a = new_line[-1]
+            if a.lower() == b.lower() and a.islower() != b.islower():
+                new_line.pop()
+                continue
+        new_line.append(b)
+    return new_line
+
+
 stats = {}
 
 
 for r in removeries:
     line = [c for c in original_line if not remove(c, r)]
 
-    pops = 1
-    while pops > 0:
-        new_line = []
-        pops = 0
-        for b in line:
-            if new_line:
-                a = new_line[-1]
-                if a.lower() == b.lower() and a.islower() != b.islower():
-                    new_line.pop()
-                    pops += 1
-                    continue
-            new_line.append(b)
-        line = new_line
+    new_line = optimize(line)
 
     stats[r] = {'r': r, 'len': len(new_line)}
 
