@@ -14,10 +14,9 @@ goals = [(9, 25, 32),
 def play_game(players, last_marble):
     scores = [0] * players
 
-    marbles = deque([0, 1])
-    marbles.rotate(-1)
+    marbles = deque([0])
 
-    for marble in range(2, last_marble + 1):
+    for marble in range(1, last_marble + 1):
         player = marble % players
 
         if marble % 23 == 0:
