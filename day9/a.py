@@ -6,8 +6,8 @@ goals = [(9, 25, 32),
          (17, 1104, 2764),
          (21, 6111, 54718),
          (30, 5807, 37305),
-         (447, 71510, 0),
-         (447, 71510 * 100, 0)
+         (447, 71510, '?'),
+         (447, 71510 * 100, '?')
          ]
 
 
@@ -35,4 +35,4 @@ for goal in goals[0:]:
     players, last_marble, high_score = goal
     score = play_game(players, last_marble)
 
-    print('score: %i == %i' % (score, high_score))
+    print('score: %i == %s' % (score, high_score))
