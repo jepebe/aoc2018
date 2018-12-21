@@ -107,7 +107,7 @@ for line in lines[0:]:
     dist_map = bfs(topo, (0, 0))
 
     dist_count = sum(1 for d in dist_map if dist_map[d] >= 1000)
-    print(dist_count)
+    print(f'Number of rooms with distance >= 1000 = {dist_count}')
 
     max_dist = max(dist_map.values())
 
