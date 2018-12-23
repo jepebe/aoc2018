@@ -74,12 +74,6 @@ def find_nanobots_in_max_radius(points):
     return in_radius
 
 
-def gcd(a, b):
-    if (b == 0):
-        return a
-    return gcd(b, a % b)
-
-
 if __name__ == '__main__':
     points = parse_input(sys.stdin.readlines())
 
@@ -121,4 +115,3 @@ if __name__ == '__main__':
         print(green(f'Success! Distance from (0, 0, 0) is {m[d]} from ({m[x], m[y], m[z]})'))
     else:
         print(red(f'Failed! Distance from (0, 0, 0) is not {m[d]} from ({m[x], m[y], m[z]})'))
-
