@@ -34,6 +34,7 @@ def find(points, minimum, size):
     iterations = 0
     while cubes:
         cube = heappop(cubes)
+        # print(cube)
 
         if cube.size == 0:
             print(f'Number of iterations before finding solution: {iterations}')
@@ -42,7 +43,7 @@ def find(points, minimum, size):
         half_size = cube.size // 2
 
         x, y, z = cube.p
-        for dx, dy, dz in product([0, half_size], repeat=3):
+        for dx, dy, dz in product([0, max(1, half_size)], repeat=3):
             heappush(cubes, Cube((x + dx, y + dy, z + dz), half_size, points))
 
         iterations += 1
@@ -81,3 +82,9 @@ if __name__ == '__main__':
     (x, y, z), d = find(points, minimum, size)
 
     print(f'{x, y, z} -> {d}')
+
+    test_data = ((19992232, 58718915, 22274751, 100985898), (12, 12, 12, 36), (1, 0, 0, 1))
+    if (x, y, z, d) in test_data:
+        print(f'\033[92mSuccess! Distance should be {d} from {x, y, z}\033[0m')
+    else:
+        print(f'\033[31mFailed! Distance should not be {d}\033[0m')
