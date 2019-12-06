@@ -13,10 +13,10 @@ def orbit_count_checksum(orbits, node, depth=0):
     if node not in orbits:
         return depth
 
-    orbitors = orbits[node]
+    orbiters = orbits[node]
     checksum = depth
-    for orbitor in orbitors:
-        checksum += orbit_count_checksum(orbits, orbitor, depth+1)
+    for orbiter in orbiters:
+        checksum += orbit_count_checksum(orbits, orbiter, depth+1)
     return checksum
 
 
@@ -28,7 +28,6 @@ def find_parent(orbits, a):
 
 
 def path_to_root(orbits, a):
-
     path = []
     parent = a
     while parent != 'COM':
@@ -51,7 +50,7 @@ def load_test_data(filename):
     return orbits, orbit_count_checksum(orbits, 'COM')
 
 
-orbs, chksum = load_test_data('test')
+_, chksum = load_test_data('test')
 assert chksum == 42
 
 orbs, chksum = load_test_data('test2')
