@@ -161,6 +161,10 @@ def add_input(state_machine, input):
         state_machine['wait'] = False
 
 
+def get_output(state_machine):
+    return state_machine['output'].pop(0)
+
+
 def load_instructions(filename):
     with open(filename) as f:
         instructions = f.readline().split(',')
@@ -171,3 +175,7 @@ def load_instructions(filename):
 def load_state_machine(filename):
     instructions = load_instructions(filename)
     return create_state_machine(instructions)
+
+
+def is_running(state_machine):
+    return not state_machine['halt']

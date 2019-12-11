@@ -28,6 +28,9 @@ class Tester(object):
             self._fails += 1
             print(red(f'Test #{self._count} Error! {message}'))
 
+    def test_value(self, a, b):
+        self.test(a == b, f'{a} != {b}')
+
     def summary(self):
         if self._fails > 0:
             print(red(f'Error! {self._fails} test(s) failed!'))
