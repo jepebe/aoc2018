@@ -57,6 +57,7 @@ def get_input(state_machine):
     if len(state_machine['input']) == 0:
         state_machine['wait'] = True
         state_machine['pos'] -= 1
+        state_machine['instruction_count'] -= 1
     else:
         inpt = state_machine['input'].pop(0)
         write(state_machine, 0, inpt)

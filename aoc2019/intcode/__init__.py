@@ -1,3 +1,5 @@
+from functools import reduce
+from math import gcd
 from .state_machine import load_state_machine, create_state_machine, add_input, run_state_machine, get_output, is_running
 from .tester import red, green, Tester
 
@@ -25,3 +27,12 @@ def print_map(grid, look_up=None, missing=None, func=None):
                     row.append('.')
 
         print(''.join(row))
+
+
+def lcm(a, b):
+    return a * b // gcd(a, b)
+
+
+def lcms(*numbers):
+    return reduce(lcm, numbers)
+
