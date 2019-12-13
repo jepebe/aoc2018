@@ -1,7 +1,7 @@
 from functools import reduce
 from math import gcd
 from .state_machine import load_state_machine, create_state_machine, add_input, run_state_machine, get_output, is_running, has_output
-from .tester import red, green, Tester
+from .tester import red, green, Tester, color, blue
 
 
 def print_map(grid, look_up=None, missing=None, func=None):

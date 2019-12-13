@@ -66,5 +66,4 @@ if __name__ == '__main__':
     def fn(g, p):
         return str(dist[p])
 
-
     print_map(topo, missing='#', func=fn)

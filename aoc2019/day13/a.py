@@ -25,14 +25,21 @@ def run_game(sm, grid, ball_pos=None, paddle_pos=None):
 
 sm = ic.load_state_machine('input')
 grid, blocks, *_ = run_game(sm, {})
-
-# ic.print_map(grid, {0: '.', 1: '#', 2: '=', 3: '-', 4: '@'})
+look_up = {
+    0: ' ',
+    1: ic.color('\u2588', 250),  # wall
+    2: ic.color('\u2592', 105),  # blocks
+    3: ic.color('\u2594', 214),  # paddle
+    4: ic.color('\u25CF', 118)  # ball
+}
+ic.print_map(grid, look_up)
 print(f'blockcount {blocks} == 226')  # 226
 
 
 def play_game(sm):
     sm['instructions'][0] = 2
     grid = {}
+    score = 0
     ball = None
     paddle = None
     while ic.is_running(sm):
@@ -50,6 +57,6 @@ def play_game(sm):
 
 sm = ic.load_state_machine('input')
 grid, score = play_game(sm)
-# ic.print_map(grid, {0: '.', 1: '#', 2: '=', 3: '-', 4: '@'})
+
 print(f'score {score} == 10800')  # 10800
 print(f'instruction count {sm["instruction_count"]}')

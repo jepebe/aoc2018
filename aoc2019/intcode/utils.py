@@ -1,35 +1,6 @@
 from collections import deque
 from heapq import heappop, heappush
 
-
-def bfs(topo, start):
-    dist = {}
-    queue = deque([[start]])
-    seen = {start}
-    while queue:
-        path = queue.popleft()
-        x, y = path[-1]
-        dist[(x, y)] = len(path) - 1
-
-        for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
-            pos = (x + d[0], y + d[1])
-
-            if pos in topo and topo[pos] in ('|', '-'):
-                pos = (pos[0] + d[0], pos[1] + d[1])
-            else:
-                continue
-
-            if pos not in topo:
-                continue
-
-            if pos in seen:
-                continue
-
-            queue.append(path + [pos])
-            seen.add(pos)
-    return dist
-
-
 class Node(object):
     def __init__(self, pos, equipped, distance=999999):
         self.pos = pos

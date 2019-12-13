@@ -1,4 +1,3 @@
-
 from math import atan2, pi, sqrt
 
 from intcode import Tester
