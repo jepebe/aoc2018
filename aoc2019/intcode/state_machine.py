@@ -166,6 +166,10 @@ def get_output(state_machine):
     return state_machine['output'].pop(0)
 
 
+def has_output(state_machine):
+    return len(state_machine['output']) > 0
+
+
 def load_instructions(filename):
     with open(filename) as f:
         instructions = f.readline().split(',')
