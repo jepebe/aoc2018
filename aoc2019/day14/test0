@@ -1,0 +1,6 @@
+11 ORE => 13 A
+12 ORE => 11 B
+13 ORE => 3 D
+4 A, 1 B, 3 D => 5 ABD
+7 A, 3 B, 1 ABD => 7 ABC
+2 ABC, 1 ABD => 1 FUEL
