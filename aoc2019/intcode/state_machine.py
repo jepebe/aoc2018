@@ -1,39 +1,38 @@
-def read(state_machine, parameter):
+from collections import defaultdict
+
+
+def get_address(state_machine, parameter, write_mode=False):
     mode = state_machine['parameter_modes'][parameter]
     pos = state_machine['pos']
-    state_machine['pos'] += 1
+
     if mode == 0:
         addr = state_machine['instructions'][pos]
     elif mode == 1:
+        if write_mode:
+            print('Writing in immediate mode?')
         addr = pos
     elif mode == 2:
         addr = state_machine['instructions'][pos]
-        rpos = state_machine['relative_pos']
-        addr = addr + rpos
+        relative_pos = state_machine['relative_pos']
+        addr = addr + relative_pos
     else:
         raise ('Unknown addressing mode %i for read' % mode)
+    return addr
+
+
+def read(state_machine, parameter):
+    addr = get_address(state_machine, parameter)
+    state_machine['pos'] += 1
 
     if addr >= len(state_machine['instructions']):
-        return 0 if not addr in state_machine['memory'] else state_machine['memory'][addr]
+        return state_machine['memory'][addr]
     else:
         return state_machine['instructions'][addr]
 
 
 def write(state_machine, parameter, value):
-    mode = state_machine['parameter_modes'][parameter]
-    pos = state_machine['pos']
+    addr = get_address(state_machine, parameter, write_mode=True)
     state_machine['pos'] += 1
-    if mode == 0:
-        addr = state_machine['instructions'][pos]
-    elif mode == 1:
-        print('Writing in immediate mode?')
-        addr = pos
-    elif mode == 2:
-        addr = state_machine['instructions'][pos]
-        rpos = state_machine['relative_pos']
-        addr = addr + rpos
-    else:
-        raise ('Unknown addressing mode %i for write' % mode)
 
     if addr >= len(state_machine['instructions']):
         state_machine['memory'][addr] = value
@@ -47,7 +46,7 @@ def add(state_machine):
     write(state_machine, 2, a + b)
 
 
-def mult(state_machine):
+def multiply(state_machine):
     a = read(state_machine, 0)
     b = read(state_machine, 1)
     write(state_machine, 2, a * b)
@@ -59,8 +58,8 @@ def get_input(state_machine):
         state_machine['pos'] -= 1
         state_machine['instruction_count'] -= 1
     else:
-        inpt = state_machine['input'].pop(0)
-        write(state_machine, 0, inpt)
+        data = state_machine['input'].pop(0)
+        write(state_machine, 0, data)
 
 
 def output(state_machine):
@@ -111,7 +110,7 @@ def halt(state_machine):
 def create_state_machine(instructions):
     return {
         'instructions': list(instructions),
-        'memory': {},
+        'memory': defaultdict(int),
         'operation': 0,
         'parameter_modes': [0],
         'pos': 0,
@@ -122,7 +121,7 @@ def create_state_machine(instructions):
         'output_enabled': False,
         'opcodes': {
             1: add,
-            2: mult,
+            2: multiply,
             3: get_input,
             4: output,
             5: jump_if_true,
@@ -156,8 +155,8 @@ def run_state_machine(state_machine):
         state_machine['instruction_count'] += 1
 
 
-def add_input(state_machine, input):
-    state_machine['input'].append(input)
+def add_input(state_machine, data):
+    state_machine['input'].append(data)
     if state_machine['wait']:
         state_machine['wait'] = False
 
