@@ -139,10 +139,12 @@ def create_state_machine(instructions):
 def parse(state_machine):
     pos = state_machine['pos']
     opcode = state_machine['instructions'][pos]
-    opcode = str(opcode)
-    opcode = '0' * (5 - len(opcode)) + opcode
-    state_machine['operation'] = state_machine['opcodes'][int(opcode[3:])]
-    state_machine['parameter_modes'] = [int(opcode[2]), int(opcode[1]), int(opcode[0])]
+    op = opcode % 100
+    p1 = ((opcode - op) // 100) % 10
+    p2 = ((opcode - op) // 1000) % 10
+    p3 = ((opcode - op) // 10000) % 10
+    state_machine['operation'] = state_machine['opcodes'][op]
+    state_machine['parameter_modes'] = [p1, p2, p3]
 
     state_machine['pos'] += 1
 

@@ -1,6 +1,7 @@
 from collections import deque
 
 import intcode as ic
+from intcode.ocr import ocr
 
 dirs = deque([(0, -1), (1, 0), (0, 1), (-1, 0)])
 pm = ic.load_state_machine('input')
@@ -19,11 +20,11 @@ while ic.is_running(pm):
     d = dirs[0]
     pos = pos[0] + d[0], pos[1] + d[1]
 
-
 # part1: right = 2319
 
 print(len(grid))
 
-
 ic.print_map(grid, {0: ' ', 1: '#'}, missing=' ')
+chars = ocr(grid, {0: ' ', 1: '#'}, missing=' ')
+print(f'identified characters: {chars}')
 # ic.print_map(grid, func=lambda g, p: ' ' if g[p] == 0 else '*')
