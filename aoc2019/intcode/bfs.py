@@ -1,9 +1,7 @@
 from collections import deque
 
-from intcode import Tester, print_map
 
-
-def bfs(topo, start):
+def bfs(topo, start, walkable=('*')):
     dist = {}
     queue = deque([[start]])
     seen = {start}
@@ -15,7 +13,7 @@ def bfs(topo, start):
         for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
             pos = (x + d[0], y + d[1])
 
-            if pos in topo and topo[pos] in ['*']:
+            if pos in topo and topo[pos] in walkable:
                 pass
             else:
                 continue
@@ -33,6 +31,7 @@ def bfs(topo, start):
 
 
 if __name__ == '__main__':
+    from intcode import Tester, print_map
     topo = {
         (0, 0): '*',
         (0, 1): '*',

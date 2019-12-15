@@ -11,7 +11,11 @@ def green(text):
 
 
 def blue(text):
-    return color(text, 35)
+    return color(text, 69)
+
+
+def yellow(text):
+    return color(text, 226)
 
 
 class Tester(object):
@@ -23,17 +27,19 @@ class Tester(object):
         self._fails = 0
         self._success = 0
 
-    def test(self, test_state, message):
+    def test(self, test_state, message, success_message=''):
         self._count += 1
         if test_state:
             self._success += 1
-            print(green(f'\u2705 Test #{self._count} OK!'))
+            print(green(f'\u2705 Test #{self._count} OK! {success_message}'))
         else:
             self._fails += 1
             print(red(f'\u274C Test #{self._count} Error! {message}'))
 
-    def test_value(self, a, b):
-        self.test(a == b, f'{a} != {b}')
+    def test_value(self, a, b, success_message=''):
+        if '%s' in success_message:
+            success_message = success_message % a
+        self.test(a == b, f'{a} != {b}', success_message=yellow(success_message))
 
     def summary(self):
         if self._fails > 0:

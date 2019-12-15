@@ -132,7 +132,7 @@ reactions = load_reactions('test5')
 tester.test_value(calculate_total_ore_cost(reactions), 2210736)
 
 reactions = load_reactions('input')
-tester.test_value(calculate_total_ore_cost(reactions), 907302)
+tester.test_value(calculate_total_ore_cost(reactions), 907302, 'Solution for part 1 is %s')
 
 reactions = load_reactions('test3')
 tester.test_value(find_ore_production(reactions, 1000000000000), 82892753)
@@ -144,6 +144,6 @@ reactions = load_reactions('test5')
 tester.test_value(find_ore_production(reactions, 1000000000000), 460664)
 
 reactions = load_reactions('input')
-tester.test_value(find_ore_production(reactions, 1000000000000), 1670299)
+tester.test_value(find_ore_production(reactions, 1000000000000), 1670299, 'Solution for part 2 is %s')
 
 tester.summary()
