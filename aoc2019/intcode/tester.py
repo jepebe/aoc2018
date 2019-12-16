@@ -31,10 +31,10 @@ class Tester(object):
         self._count += 1
         if test_state:
             self._success += 1
-            print(green(f'\u2705 Test #{self._count} OK! {success_message}'))
+            print(green(f'\u2705  Test #{self._count} OK! {success_message}'))
         else:
             self._fails += 1
-            print(red(f'\u274C Test #{self._count} Error! {message}'))
+            print(red(f'\u274C  Test #{self._count} Error! {message}'))
 
     def test_value(self, a, b, success_message=''):
         if '%s' in success_message:
