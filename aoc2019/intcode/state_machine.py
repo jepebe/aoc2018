@@ -118,6 +118,7 @@ def create_state_machine(instructions):
         'instruction_count': 0,
         'input': [],
         'output': [],
+        'last_output': None,
         'output_enabled': False,
         'opcodes': {
             1: add,
@@ -164,11 +165,21 @@ def add_input(state_machine, data):
 
 
 def get_output(state_machine):
+    state_machine['last_output'] = state_machine['output'][0]
     return state_machine['output'].pop(0)
 
 
 def has_output(state_machine):
     return len(state_machine['output']) > 0
+
+
+def get_last_output(state_machine):
+    return state_machine['last_output']
+
+
+def flush_output(state_machine):
+    while has_output(state_machine):
+        get_output(state_machine)
 
 
 def load_instructions(filename):
@@ -185,3 +196,11 @@ def load_state_machine(filename):
 
 def is_running(state_machine):
     return not state_machine['halt']
+
+
+def print_output(state_machine):
+    import sys
+    while has_output(state_machine):
+        v = get_output(state_machine)
+        sys.stdout.write(str(v) if v > 255 else chr(v))
+    print()

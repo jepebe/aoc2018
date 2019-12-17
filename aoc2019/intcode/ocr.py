@@ -1,12 +1,9 @@
-from intcode import Tester
+from intcode import Tester, find_extents
 from intcode.glyphs import glyph_data
 
 
 def ocr(grid, look_up, missing=' '):
-    minx = min(x[0] for x in grid)
-    miny = min(x[1] for x in grid)
-    maxx = max(x[0] for x in grid)
-    maxy = max(x[1] for x in grid)
+    minx, maxx, miny, maxy = find_extents(grid)
     characters = []
     for j in range(miny, maxy):
         for i in range(minx, maxx):
