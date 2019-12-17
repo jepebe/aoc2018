@@ -31,7 +31,7 @@ def print_map(grid, look_up=None, missing=None, func=None):
                 elif func:
                     row.append(func(grid, (x, y)))
                 else:
-                    row.append('.')
+                    row.append('∞')
 
         print(''.join(row))
 
