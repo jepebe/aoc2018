@@ -192,3 +192,7 @@ ic.flush_output(sm)
 tester.test_value(ic.get_last_output(sm), 1071369, 'Solution to part 2 = %s')
 
 tester.summary()
+
+sm = ic.load_state_machine('input')
+sm['instructions'][0] = 2
+ic.terminal(sm)

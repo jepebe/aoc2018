@@ -203,4 +203,3 @@ def print_output(state_machine):
     while has_output(state_machine):
         v = get_output(state_machine)
         sys.stdout.write(str(v) if v > 255 else chr(v))
-    print()
