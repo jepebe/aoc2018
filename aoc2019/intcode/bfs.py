@@ -1,7 +1,7 @@
 from collections import deque
 
 
-def bfs(topo, start, walkable=('*')):
+def bfs(topo, start, walkable=('*',)):
     dist = {}
     queue = deque([[start]])
     seen = {start}
