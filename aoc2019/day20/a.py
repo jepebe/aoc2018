@@ -1,12 +1,15 @@
 from collections import deque
+from copy import copy
 
 import intcode as ic
 
 
 def read_map(filename):
     grid = {}
-    portals = {}
     partials = {}
+    portals = {}
+    start = None
+    end = None
 
     with open(filename) as f:
         y = 0
@@ -16,20 +19,20 @@ def read_map(filename):
                 if c == '\n':
                     continue
                 pos = (x, y)
-                grid[pos] = c
+                grid[pos] = grid.get(pos, Node(x, y, c))
 
                 if c.isalpha():
                     if (x - 1, y) in partials:
-                        if (x - 2, y) in grid and grid[(x - 2, y)] == '.':
-                            portals[(x - 2, y)] = partials[(x - 1, y)] + c
+                        if (x - 2, y) in grid and grid[(x - 2, y)].value == '.':
+                            portals[(x - 2, y)] = (partials[(x - 1, y)] + c)
                         else:
-                            portals[(x + 1, y)] = partials[(x - 1, y)] + c
+                            portals[(x + 1, y)] = (partials[(x - 1, y)] + c)
                         del partials[(x - 1, y)]
                     elif (x, y - 1) in partials:
-                        if (x, y - 2) in grid and grid[(x, y - 2)] == '.':
-                            portals[(x, y - 2)] = partials[(x, y - 1)] + c
+                        if (x, y - 2) in grid and grid[(x, y - 2)].value == '.':
+                            portals[(x, y - 2)] = (partials[(x, y - 1)] + c)
                         else:
-                            portals[(x, y + 1)] = partials[(x, y - 1)] + c
+                            portals[(x, y + 1)] = (partials[(x, y - 1)] + c)
                         del partials[(x, y - 1)]
                     else:
                         partials[(x, y)] = c
@@ -39,131 +42,163 @@ def read_map(filename):
 
     minx, maxx, miny, maxy = ic.find_extents(grid)
 
-    outer_portals = set()
-    temp_portals = {}
-    for portal in portals.keys():
-        if abs(portal[0] - minx) == 2 or abs(portal[0] - maxx) == 2:
-            outer_portals.add(portal)
-        elif abs(portal[1] - miny) == 2 or abs(portal[1] - maxy) == 2:
-            outer_portals.add(portal)
-        name = portals[portal]
-        if name not in temp_portals:
-            temp_portals[name] = []
-        temp_portals[name].append(portal)
-        temp_portals[portal] = portals[portal]
+    for portal in portals:
+        if portals[portal] == 'AA':
+            start = grid[portal]
+        elif portals[portal] == 'ZZ':
+            end = grid[portal]
+        else:
+            grid[portal].set_is_portal(portals[portal])
 
-    return grid, temp_portals, outer_portals
+    portals = [node for node in grid.values() if node.is_portal()]
+    outer = {}
+    for portal in portals:
+        if abs(portal.x - minx) == 2 or abs(portal.x - maxx) == 2:
+            portal.set_is_outer_portal()
+
+        elif abs(portal.y - miny) == 2 or abs(portal.y - maxy) == 2:
+            portal.set_is_outer_portal()
+
+        if portal.is_outer_portal():
+            outer[portal.value] = portal
+
+    for portal in portals:
+        if not portal.is_outer_portal():
+            dst = outer[portal.value]
+            dst.set_portal_destination(portal)
+            portal.set_portal_destination(dst)
+
+    return grid, start, end
 
 
-def traverse_maze(topo, portals, start='AA', end='ZZ'):
-    start = portals[start][0]
-    end = portals[end][0]
-    queue = deque([[(start, 0)]])
-    seen = {(start, 0)}
-    while queue:
-        path = queue.popleft()
-        (x, y), portal_count = path[-1]
+class Node(object):
+    def __init__(self, x, y, value, level=0):
+        self._x = x
+        self._y = y
+        self._value = value
+        self._level = level
+        self._portal = False
+        self._outer_portal = False
+        self._portal_destination = None
 
-        if (x, y) == end:
-            return len(path) - 1 + portal_count
+    @property
+    def x(self):
+        return self._x
 
+    @property
+    def y(self):
+        return self._y
+
+    @property
+    def pos(self):
+        return self.x, self.y
+
+    @property
+    def value(self):
+        return self._value
+
+    def is_traversable(self):
+        return self.value not in ('#', ' ')
+
+    def set_is_portal(self, portal_name):
+        self._portal = True
+        self._value = portal_name
+
+    def is_portal(self):
+        return self._portal
+
+    def set_is_outer_portal(self):
+        self._outer_portal = True
+
+    def is_outer_portal(self):
+        return self._outer_portal
+
+    def set_portal_destination(self, node):
+        self._portal_destination = node
+
+    def neighbours(self, grid, **kwargs):
         for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
-            pos = (x + d[0], y + d[1])
+            pos = ic.add_tuple(self.pos, d)
 
-            if pos not in topo:
+            if pos not in grid:
                 continue
 
-            cell = topo[pos]
-            if cell in ('#', ' '):
-                continue
+            if grid[pos].is_traversable():
+                neighbour = grid[pos].copy()
+                neighbour._level = self._level
+                yield neighbour
 
-            pc = 0
-            if pos in portals:
-                portal = portals[pos]
-                for p in portals[portal]:
-                    if p == pos:
-                        continue
-                    else:
-                        pos = p
-                        pc += 1
-                        break
-
-            if pos in seen:
-                continue
-
-            queue.append(path + [(pos, portal_count + pc)])
-            seen.add(pos)
-
-    return None
-
-
-def traverse_recursive_maze(topo, portals, outer, start='AA', end='ZZ'):
-    start_pos = portals[start][0]
-    end_pos = portals[end][0]
-    queue = deque([[(start_pos, 0, 0)]])
-    seen = {(start_pos, 0, 0)}
-    while queue:
-        path = queue.popleft()
-        (x, y), portal_count, lvl = path[-1]
-
-        if ((x, y), lvl) == (end_pos, 0):
-            return len(path) - 1 + portal_count
-
-        for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
-            pos = (x + d[0], y + d[1])
-
-            if pos not in topo:
-                continue
-
-            cell = topo[pos]
-            if cell in ('#', ' '):
-                continue
-
-            pc = 0
-            plvl = 0
-            if pos in portals and portals[pos] not in (start, end):
-                if pos in outer and lvl == 0:
+        if self.is_portal():
+            dst = self._portal_destination.copy()
+            if 'mode' in kwargs and kwargs['mode'] == 'recursive':
+                if self.is_outer_portal() and self._level == 0:
                     pass
                 else:
-                    portal = portals[pos]
-                    for p in portals[portal]:
-                        if p != pos:
-                            plvl = -1 if pos in outer else 1
-                            pos = p
-                            pc = 1
-                            break
+                    level = self._level
+                    level += -1 if self.is_outer_portal() else 1
+                    dst._level = level
+                    yield dst
+            else:
+                yield dst
 
-            if (pos, lvl + plvl) in seen:
+    def copy(self):
+        return copy(self)
+
+    def __hash__(self):
+        return hash((self.x, self.y, self._level))
+
+    def __eq__(self, o):
+        return (self.x, self.y, self._level) == (o.x, o.y, o._level)
+
+    def __str__(self):
+        return f'({self.x}, {self.y}) {self._level} {self.value} {self.is_outer_portal()}'
+
+    def __repr__(self):
+        return str(self)
+
+
+def traverse_maze(topo, start, end, mode=None):
+    queue = deque([[start]])
+    seen = {start}
+    while queue:
+        path = queue.popleft()
+        node = path[-1]
+
+        if node == end:
+            return len(path) - 1
+
+        for neighbour in node.neighbours(topo, mode=mode):
+            if neighbour in seen:
                 continue
 
-            queue.append(path + [(pos, portal_count + pc, lvl + plvl)])
-            seen.add((pos, lvl + plvl))
+            queue.append(path + [neighbour])
+            seen.add(neighbour)
 
     return None
 
 
 tester = ic.Tester('donut')
 
-grid, portals, _ = read_map('test1')
-tester.test_value(traverse_maze(grid, portals), 23)
+grid, start, end = read_map('test1')
+tester.test_value(traverse_maze(grid, start, end), 23)
 
-grid, portals, _ = read_map('test2')
-tester.test_value(traverse_maze(grid, portals), 58)
+grid, start, end = read_map('test2')
+tester.test_value(traverse_maze(grid, start, end), 58)
 
-grid, portals, _ = read_map('test3')
-tester.test_value(traverse_maze(grid, portals), 77)
+grid, start, end = read_map('test3')
+tester.test_value(traverse_maze(grid, start, end), 77)
 
-grid, portals, _ = read_map('input')
-tester.test_value(traverse_maze(grid, portals), 600, 'Solution to part 1 %s')
+grid, start, end = read_map('input')
+tester.test_value(traverse_maze(grid, start, end), 600, 'Solution to part 1 = %s')
 
 
-grid, portals, outer = read_map('test1')
-tester.test_value(traverse_recursive_maze(grid, portals, outer), 26)
+grid, start, end = read_map('test1')
+tester.test_value(traverse_maze(grid, start, end, mode='recursive'), 26)
 
-grid, portals, outer = read_map('test3')
-tester.test_value(traverse_recursive_maze(grid, portals, outer), 396)
+grid, start, end = read_map('test3')
+tester.test_value(traverse_maze(grid, start, end, mode='recursive'), 396)
 
-grid, portals, outer = read_map('input')
-tester.test_value(traverse_recursive_maze(grid, portals, outer), 6666, 'Solution to part 2 %s')
+grid, start, end = read_map('input')
+tester.test_value(traverse_maze(grid, start, end, mode='recursive'), 6666, 'Solution to part 2 = %s')
 
 tester.summary()
