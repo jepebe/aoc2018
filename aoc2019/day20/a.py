@@ -7,7 +7,7 @@ import intcode as ic
 def read_map(filename):
     grid = {}
     partials = {}
-    portals = {}
+    portal_pos = {}
     start = None
     end = None
 
@@ -19,20 +19,20 @@ def read_map(filename):
                 if c == '\n':
                     continue
                 pos = (x, y)
-                grid[pos] = grid.get(pos, Node(x, y, c))
+                grid[pos] = c
 
                 if c.isalpha():
                     if (x - 1, y) in partials:
-                        if (x - 2, y) in grid and grid[(x - 2, y)].value == '.':
-                            portals[(x - 2, y)] = (partials[(x - 1, y)] + c)
+                        if (x - 2, y) in grid and grid[(x - 2, y)] == '.':
+                            portal_pos[(x - 2, y)] = (partials[(x - 1, y)] + c)
                         else:
-                            portals[(x + 1, y)] = (partials[(x - 1, y)] + c)
+                            portal_pos[(x + 1, y)] = (partials[(x - 1, y)] + c)
                         del partials[(x - 1, y)]
                     elif (x, y - 1) in partials:
-                        if (x, y - 2) in grid and grid[(x, y - 2)].value == '.':
-                            portals[(x, y - 2)] = (partials[(x, y - 1)] + c)
+                        if (x, y - 2) in grid and grid[(x, y - 2)] == '.':
+                            portal_pos[(x, y - 2)] = (partials[(x, y - 1)] + c)
                         else:
-                            portals[(x, y + 1)] = (partials[(x, y - 1)] + c)
+                            portal_pos[(x, y + 1)] = (partials[(x, y - 1)] + c)
                         del partials[(x, y - 1)]
                     else:
                         partials[(x, y)] = c
@@ -42,25 +42,28 @@ def read_map(filename):
 
     minx, maxx, miny, maxy = ic.find_extents(grid)
 
-    for portal in portals:
-        if portals[portal] == 'AA':
-            start = grid[portal]
-        elif portals[portal] == 'ZZ':
-            end = grid[portal]
+    portals = {}
+    for portal in portal_pos:
+        if portal_pos[portal] == 'AA':
+            start = portal
+        elif portal_pos[portal] == 'ZZ':
+            end = portal
         else:
-            grid[portal].set_is_portal(portals[portal])
+            portals[portal] = {
+                'name': portal_pos[portal],
+                'destination': None,
+                'outer': False,
+                'inner': False,
+                'pos': portal
+            }
 
-    portals = [node for node in grid.values() if node.is_portal()]
-    outer = {}
     for portal in portals:
-        if abs(portal.x - minx) == 2 or abs(portal.x - maxx) == 2:
-            portal.set_is_outer_portal()
-
-        elif abs(portal.y - miny) == 2 or abs(portal.y - maxy) == 2:
-            portal.set_is_outer_portal()
-
-        if portal.is_outer_portal():
-            outer[portal.value] = portal
+        if abs(portal[0] - minx) == 2 or abs(portal[0] - maxx) == 2:
+            portals[portal]['outer'] = True
+        elif abs(portal[1] - miny) == 2 or abs(portal[1] - maxy) == 2:
+            portals[portal]['outer'] = True
+        else:
+            portals[portal]['inner'] = True
 
     for portal in portals:
         if not portal.is_outer_portal():
