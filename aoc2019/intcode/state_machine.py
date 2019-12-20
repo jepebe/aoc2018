@@ -110,6 +110,7 @@ def halt(state_machine):
 def create_state_machine(instructions):
     return {
         'instructions': list(instructions),
+        'backup_instructions': list(instructions),
         'memory': defaultdict(int),
         'operation': 0,
         'parameter_modes': [0],
@@ -135,6 +136,22 @@ def create_state_machine(instructions):
         'halt': False,
         'wait': False
     }
+
+
+def reset_state_machine(state_machine):
+    state_machine['instructions'] = list(state_machine['backup_instructions'])
+    state_machine['memory'] = defaultdict(int)
+    state_machine['operation'] = 0
+    state_machine['parameter_modes'] = [0]
+    state_machine['pos'] = 0
+    state_machine['relative_pos'] = 0
+    state_machine['instruction_count'] = 0
+    state_machine['input'] = []
+    state_machine['output'] = []
+    state_machine['last_output'] = None
+    state_machine['output_enabled'] = False
+    state_machine['halt'] = False
+    state_machine['wait'] = False
 
 
 def parse(state_machine):
