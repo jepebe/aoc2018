@@ -112,33 +112,33 @@ def recursive_neighbours(grid, portals, pos):
             yield dst, level + adj
 
 
-def bfs(grid, start, end, neighbours):
-    queue = deque([[start]])
-    seen = {start}
-    dist = {}
-    while queue:
-        path = queue.popleft()
-        node = path[-1]
-        dist[node] = len(path) - 1
-
-        if end is not None and node == end:
-            return len(path) - 1
-
-        for neighbour in neighbours(grid, node):
-            if neighbour in seen:
-                continue
-
-            queue.append(path + [neighbour])
-            seen.add(neighbour)
-
-    return dist
+# def bfs(grid, start, end, neighbours):
+#     queue = deque([[start]])
+#     seen = {start}
+#     dist = {}
+#     while queue:
+#         path = queue.popleft()
+#         node = path[-1]
+#         dist[node] = len(path) - 1
+#
+#         if end is not None and node == end:
+#             return len(path) - 1
+#
+#         for neighbour in neighbours(grid, node):
+#             if neighbour in seen:
+#                 continue
+#
+#             queue.append(path + [neighbour])
+#             seen.add(neighbour)
+#
+#     return dist
 
 
 def traverse_maze(grid, portals, start, end):
     def neigh(grid, pos):
         return neighbours(grid, portals, pos)
 
-    min_dist = bfs(grid, start, end, neigh)
+    min_dist = ic.bfsf(grid, start, end, neigh)
     return min_dist
 
 
@@ -146,7 +146,7 @@ def traverse_recursive_maze(grid, portals, start, end):
     def neigh(grid, pos):
         return recursive_neighbours(grid, portals, pos)
 
-    min_dist = bfs(grid, (start, 0), (end, 0), neigh)
+    min_dist = ic.bfsf(grid, (start, 0), (end, 0), neigh)
     return min_dist
 
 

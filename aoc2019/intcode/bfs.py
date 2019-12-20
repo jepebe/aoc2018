@@ -1,33 +1,43 @@
 from collections import deque
 
 
-def bfs(topo, start, walkable=('*',)):
-    dist = {}
+def bfsf(grid, start, end, neighbours, cmp=lambda a: a, meta=None):
     queue = deque([[start]])
     seen = {start}
+    dist = {}
     while queue:
         path = queue.popleft()
-        x, y = path[-1]
-        dist[(x, y)] = len(path) - 1
+        node = path[-1]
+        dist[cmp(node)] = len(path) - 1
 
-        for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
-            pos = (x + d[0], y + d[1])
+        if end is not None and cmp(node) == end:
+            length = len(path) - 1
+            return meta(length, node) if meta else length
 
-            if pos in topo and topo[pos] in walkable:
-                pass
-            else:
+        for neighbour in neighbours(grid, node):
+            if cmp(neighbour) in seen:
                 continue
 
-            if pos not in topo:
-                continue
-
-            if pos in seen:
-                continue
-
-            queue.append(path + [pos])
-            seen.add(pos)
-
+            queue.append(path + [neighbour])
+            seen.add(cmp(neighbour))
+    if end is not None:
+        return None
     return dist
+
+
+def bfs(topo, start, walkable=('*',)):
+    def fn(grid, pos):
+        for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
+            npos = (pos[0] + d[0], pos[1] + d[1])
+
+            if npos not in grid:
+                continue
+
+            if grid[npos] not in walkable:
+                continue
+            yield npos
+
+    return bfsf(topo, start, None, neighbours=fn)
 
 
 if __name__ == '__main__':

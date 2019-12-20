@@ -3,7 +3,7 @@ from math import gcd
 from .state_machine import load_state_machine, create_state_machine, add_input, run_state_machine, reset_state_machine
 from .state_machine import get_output, is_running, has_output, print_output, get_last_output, flush_output
 from .tester import red, green, Tester, color, blue
-from .bfs import bfs
+from .bfs import bfs, bfsf
 
 
 def find_extents(grid):

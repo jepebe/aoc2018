@@ -1,4 +1,3 @@
-from collections import deque
 from heapq import heappop, heappush
 from itertools import combinations
 
@@ -31,33 +30,31 @@ def read_map(filename):
 
 
 def short_path(topo, start, end):
-    queue = deque([[(start[0], start[1], '')]])
-    seen = {(start[0], start[1], '')}
-    while queue:
-        path = queue.popleft()
-        x, y, doors = path[-1]
-
-        if (x, y) == end:
-            return len(path) - 1, doors
-
+    def neighbours(grid, pos):
+        doors = pos[1]
+        pos = pos[0]
         for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
-            pos = (x + d[0], y + d[1])
+            npos = (pos[0] + d[0], pos[1] + d[1])
 
-            if pos not in topo:
+            if npos not in grid or grid[npos] == '#':
                 continue
 
-            cell = topo[pos]
-            if cell == '#':
-                continue
-
-            if pos in seen:
-                continue
-
+            cell = grid[npos]
             is_door = cell.isalpha() and cell.isupper()
 
-            queue.append(path + [(pos[0], pos[1], doors + cell if is_door else doors)])
-            seen.add(pos)
-    return 9999, '#'
+            yield npos, doors + cell if is_door else doors
+
+    def cmp(value):
+        return value[0]
+
+    def meta(length, node):
+        return length, node[1]
+
+    result = ic.bfsf(topo, (start, ''), end, neighbours, cmp=cmp, meta=meta)
+
+    if result is None:
+        return 9999, '#'
+    return result
 
 
 def create_graph(grid, keys, entrances):
