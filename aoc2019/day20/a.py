@@ -1,5 +1,4 @@
 from collections import deque
-from copy import copy
 
 import intcode as ic
 
@@ -40,23 +39,31 @@ def read_map(filename):
                 x += 1
             y += 1
 
-    minx, maxx, miny, maxy = ic.find_extents(grid)
 
+
+    temp = {}
     portals = {}
     for portal in portal_pos:
-        if portal_pos[portal] == 'AA':
+        portal_name = portal_pos[portal]
+        if portal_name == 'AA':
             start = portal
-        elif portal_pos[portal] == 'ZZ':
+        elif portal_name == 'ZZ':
             end = portal
         else:
             portals[portal] = {
-                'name': portal_pos[portal],
+                'name': portal_name,
                 'destination': None,
                 'outer': False,
                 'inner': False,
                 'pos': portal
             }
+            if portal_name in temp:
+                portals[portal]['destination'] = temp[portal_name]
+                portals[temp[portal_name]]['destination'] = portal
+            else:
+                temp[portal_name] = portal
 
+    minx, maxx, miny, maxy = ic.find_extents(grid)
     for portal in portals:
         if abs(portal[0] - minx) == 2 or abs(portal[0] - maxx) == 2:
             portals[portal]['outer'] = True
@@ -65,143 +72,107 @@ def read_map(filename):
         else:
             portals[portal]['inner'] = True
 
-    for portal in portals:
-        if not portal.is_outer_portal():
-            dst = outer[portal.value]
-            dst.set_portal_destination(portal)
-            portal.set_portal_destination(dst)
-
-    return grid, start, end
+    return grid, portals, start, end
 
 
-class Node(object):
-    def __init__(self, x, y, value, level=0):
-        self._x = x
-        self._y = y
-        self._value = value
-        self._level = level
-        self._portal = False
-        self._outer_portal = False
-        self._portal_destination = None
+def neighbours(grid, portals, pos):
+    for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
+        npos = ic.add_tuple(pos, d)
 
-    @property
-    def x(self):
-        return self._x
+        if npos not in grid:
+            continue
 
-    @property
-    def y(self):
-        return self._y
+        if grid[npos] != '.':
+            continue
 
-    @property
-    def pos(self):
-        return self.x, self.y
+        yield npos
 
-    @property
-    def value(self):
-        return self._value
-
-    def is_traversable(self):
-        return self.value not in ('#', ' ')
-
-    def set_is_portal(self, portal_name):
-        self._portal = True
-        self._value = portal_name
-
-    def is_portal(self):
-        return self._portal
-
-    def set_is_outer_portal(self):
-        self._outer_portal = True
-
-    def is_outer_portal(self):
-        return self._outer_portal
-
-    def set_portal_destination(self, node):
-        self._portal_destination = node
-
-    def neighbours(self, grid, **kwargs):
-        for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
-            pos = ic.add_tuple(self.pos, d)
-
-            if pos not in grid:
-                continue
-
-            if grid[pos].is_traversable():
-                neighbour = grid[pos].copy()
-                neighbour._level = self._level
-                yield neighbour
-
-        if self.is_portal():
-            dst = self._portal_destination.copy()
-            if 'mode' in kwargs and kwargs['mode'] == 'recursive':
-                if self.is_outer_portal() and self._level == 0:
-                    pass
-                else:
-                    level = self._level
-                    level += -1 if self.is_outer_portal() else 1
-                    dst._level = level
-                    yield dst
-            else:
-                yield dst
-
-    def copy(self):
-        return copy(self)
-
-    def __hash__(self):
-        return hash((self.x, self.y, self._level))
-
-    def __eq__(self, o):
-        return (self.x, self.y, self._level) == (o.x, o.y, o._level)
-
-    def __str__(self):
-        return f'({self.x}, {self.y}) {self._level} {self.value} {self.is_outer_portal()}'
-
-    def __repr__(self):
-        return str(self)
+    if pos in portals:
+        yield portals[pos]['destination']
 
 
-def traverse_maze(topo, start, end, mode=None):
+def recursive_neighbours(grid, portals, pos):
+    level = pos[1]
+    pos = pos[0]
+    for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
+        npos = ic.add_tuple(pos, d)
+
+        if npos not in grid or grid[npos] != '.':
+            continue
+
+        yield npos, level
+
+    if pos in portals:
+        is_outer = portals[pos]['outer']
+        if level == 0 and is_outer:
+            pass
+        else:
+            dst = portals[pos]['destination']
+            adj = -1 if is_outer else 1
+            yield dst, level + adj
+
+
+def bfs(grid, start, end, neighbours):
     queue = deque([[start]])
     seen = {start}
+    dist = {}
     while queue:
         path = queue.popleft()
         node = path[-1]
+        dist[node] = len(path) - 1
 
-        if node == end:
+        if end is not None and node == end:
             return len(path) - 1
 
-        for neighbour in node.neighbours(topo, mode=mode):
+        for neighbour in neighbours(grid, node):
             if neighbour in seen:
                 continue
 
             queue.append(path + [neighbour])
             seen.add(neighbour)
 
-    return None
+    return dist
+
+
+def traverse_maze(grid, portals, start, end):
+    def neigh(grid, pos):
+        return neighbours(grid, portals, pos)
+
+    min_dist = bfs(grid, start, end, neigh)
+    return min_dist
+
+
+def traverse_recursive_maze(grid, portals, start, end):
+    def neigh(grid, pos):
+        return recursive_neighbours(grid, portals, pos)
+
+    min_dist = bfs(grid, (start, 0), (end, 0), neigh)
+    return min_dist
 
 
 tester = ic.Tester('donut')
 
-grid, start, end = read_map('test1')
-tester.test_value(traverse_maze(grid, start, end), 23)
 
-grid, start, end = read_map('test2')
-tester.test_value(traverse_maze(grid, start, end), 58)
+grid, portals, start, end = read_map('test1')
+tester.test_value(traverse_maze(grid, portals, start, end), 23)
 
-grid, start, end = read_map('test3')
-tester.test_value(traverse_maze(grid, start, end), 77)
+grid, portals, start, end = read_map('test2')
+tester.test_value(traverse_maze(grid, portals, start, end), 58)
 
-grid, start, end = read_map('input')
-tester.test_value(traverse_maze(grid, start, end), 600, 'Solution to part 1 = %s')
+grid, portals, start, end = read_map('test3')
+tester.test_value(traverse_maze(grid, portals, start, end), 77)
+
+grid, portals, start, end = read_map('input')
+tester.test_value(traverse_maze(grid, portals, start, end), 600, 'Solution to part 1 = %s')
 
 
-grid, start, end = read_map('test1')
-tester.test_value(traverse_maze(grid, start, end, mode='recursive'), 26)
+grid, portals, start, end = read_map('test1')
+tester.test_value(traverse_recursive_maze(grid, portals, start, end), 26)
 
-grid, start, end = read_map('test3')
-tester.test_value(traverse_maze(grid, start, end, mode='recursive'), 396)
+grid, portals, start, end = read_map('test3')
+tester.test_value(traverse_recursive_maze(grid, portals, start, end), 396)
 
-grid, start, end = read_map('input')
-tester.test_value(traverse_maze(grid, start, end, mode='recursive'), 6666, 'Solution to part 2 = %s')
+grid, portals, start, end = read_map('input')
+tester.test_value(traverse_recursive_maze(grid, portals, start, end), 6666, 'Solution to part 2 = %s')
 
 tester.summary()
