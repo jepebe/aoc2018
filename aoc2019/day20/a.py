@@ -1,5 +1,3 @@
-from collections import deque
-
 import intcode as ic
 
 
@@ -7,8 +5,6 @@ def read_map(filename):
     grid = {}
     partials = {}
     portal_pos = {}
-    start = None
-    end = None
 
     with open(filename) as f:
         y = 0
@@ -21,28 +17,21 @@ def read_map(filename):
                 grid[pos] = c
 
                 if c.isalpha():
-                    if (x - 1, y) in partials:
-                        if (x - 2, y) in grid and grid[(x - 2, y)] == '.':
-                            portal_pos[(x - 2, y)] = (partials[(x - 1, y)] + c)
-                        else:
-                            portal_pos[(x + 1, y)] = (partials[(x - 1, y)] + c)
-                        del partials[(x - 1, y)]
-                    elif (x, y - 1) in partials:
-                        if (x, y - 2) in grid and grid[(x, y - 2)] == '.':
-                            portal_pos[(x, y - 2)] = (partials[(x, y - 1)] + c)
-                        else:
-                            portal_pos[(x, y + 1)] = (partials[(x, y - 1)] + c)
-                        del partials[(x, y - 1)]
-                    else:
-                        partials[(x, y)] = c
+                    _check_for_portal(grid, pos, portal_pos, partials)
 
                 x += 1
             y += 1
 
+    portals, start, end = _find_portals(grid, portal_pos)
+
+    return grid, portals, start, end
 
 
+def _find_portals(grid, portal_pos):
     temp = {}
     portals = {}
+    start = None
+    end = None
     for portal in portal_pos:
         portal_name = portal_pos[portal]
         if portal_name == 'AA':
@@ -72,17 +61,33 @@ def read_map(filename):
         else:
             portals[portal]['inner'] = True
 
-    return grid, portals, start, end
+    return portals, start, end
+
+
+def _check_for_portal(grid, pos, portal_pos, partials):
+    x, y = pos
+    c = grid[pos]
+    if (x - 1, y) in partials:
+        if (x - 2, y) in grid and grid[(x - 2, y)] == '.':
+            portal_pos[(x - 2, y)] = (partials[(x - 1, y)] + c)
+        else:
+            portal_pos[(x + 1, y)] = (partials[(x - 1, y)] + c)
+        del partials[(x - 1, y)]
+    elif (x, y - 1) in partials:
+        if (x, y - 2) in grid and grid[(x, y - 2)] == '.':
+            portal_pos[(x, y - 2)] = (partials[(x, y - 1)] + c)
+        else:
+            portal_pos[(x, y + 1)] = (partials[(x, y - 1)] + c)
+        del partials[(x, y - 1)]
+    else:
+        partials[(x, y)] = c
 
 
 def neighbours(grid, portals, pos):
     for d in ((0, -1), (-1, 0), (1, 0), (0, 1)):
         npos = ic.add_tuple(pos, d)
 
-        if npos not in grid:
-            continue
-
-        if grid[npos] != '.':
+        if npos not in grid or grid[npos] != '.':
             continue
 
         yield npos
@@ -110,28 +115,6 @@ def recursive_neighbours(grid, portals, pos):
             dst = portals[pos]['destination']
             adj = -1 if is_outer else 1
             yield dst, level + adj
-
-
-# def bfs(grid, start, end, neighbours):
-#     queue = deque([[start]])
-#     seen = {start}
-#     dist = {}
-#     while queue:
-#         path = queue.popleft()
-#         node = path[-1]
-#         dist[node] = len(path) - 1
-#
-#         if end is not None and node == end:
-#             return len(path) - 1
-#
-#         for neighbour in neighbours(grid, node):
-#             if neighbour in seen:
-#                 continue
-#
-#             queue.append(path + [neighbour])
-#             seen.add(neighbour)
-#
-#     return dist
 
 
 def traverse_maze(grid, portals, start, end):
