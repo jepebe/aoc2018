@@ -41,6 +41,9 @@ class Tester(object):
             success_message = success_message % a
         self.test(a == b, f'{a} != {b}', success_message=yellow(success_message))
 
+    def test_value_neq(self, a, b):
+        self.test(a != b, f'{a} == {b}')
+
     def summary(self):
         if self._fails > 0:
             print(red(f'Error! {self._fails} of {self._count} test(s) failed!'))
