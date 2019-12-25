@@ -182,6 +182,8 @@ def add_input(state_machine, data):
 
 
 def get_output(state_machine):
+    if not has_output(state_machine):
+        raise UserWarning('No output available!')
     state_machine['last_output'] = state_machine['output'][0]
     return state_machine['output'].pop(0)
 

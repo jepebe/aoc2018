@@ -1,4 +1,3 @@
-import math
 from collections import deque
 
 import intcode as ic
@@ -44,9 +43,9 @@ def index_cut_deck(deck_size, index, cut):
             index += cut
     else:
         if index >= abs(cut):
-            index -= abs(cut)
+            index += cut
         else:
-            index = deck_size - abs(cut) + index
+            index = deck_size + cut + index
     # print(f'cut {cut} -> {index}')
     return index
 
@@ -74,13 +73,20 @@ def shuffle(ops, deck_size, repeat=1):
 
 
 def index_shuffle(iops, deck_size, index, repeat=1):
-    indexes = [index]
+    memo = {}
     for i in range(repeat):
-        steps = 0
+        d = 0
+        indexes = [index]
         for shuffle_iop in reversed(iops):
-            index = shuffle_iop(deck_size, index)
-            indexes.append(index)
-            steps += 1
+            new_index = shuffle_iop(deck_size, index)
+            indexes.append(index - new_index)
+            d += index - new_index
+            index = new_index
+
+        if d not in memo:
+            memo[d] = i
+        else:
+            print('repeat', d, i)
 
     return index
 
@@ -119,13 +125,6 @@ def load_shuffle(filename):
     return ops, iops
 
 
-
-
-
-def fn(nums, cut):
-    return ' '.join(deal_with_inc(deque(nums), cut))
-
-
 def egcd(a, b):
     if a == 0:
         return b, 0, 1
@@ -140,36 +139,6 @@ def modinv(a, m):
         raise Exception('modular inverse does not exist')
     else:
         return x % m
-
-
-def fn2(D, inc):
-    def f(i):
-        # if i == 0:
-        #     return 0
-        #modinv(N, D) * i % D
-        m = modinv(inc, D) * i % D
-        return m
-
-    return ' '.join([f'{f(i):2}' for i in range(D)])
-
-
-def diff(a, b):
-    # return b
-    result = []
-    for i in range(len(a)):
-        if a[i] == ' ':
-            result.append(' ')
-        elif a[i] != b[i]:
-            result.append(b[i])
-        else:
-            result.append('.')
-
-    return ''.join(result)
-
-D = 19
-nums = [f'{i:2}' for i in range(D)]
-for i in range(1, D):
-    print(fn(nums, i), '--', diff(fn(nums, i), fn2(D, i)), '--', i)
 
 
 tester = ic.Tester('decks')
@@ -244,8 +213,10 @@ index_of_2019 = new_deck.index(2019)
 tester.test_value_neq(index_of_2019, 4648)  # wrong answer 1
 tester.test_value(index_of_2019, 4684, 'Solution to part 1 is %s')
 
-index_of_4684 = index_shuffle(shuffle_iops, 10007, 4684)
+
+index_of_4684 = index_shuffle(shuffle_iops, 10007, 4684, repeat=1)
 tester.test_value(index_of_4684, 2019)
 
-# index_of_2020 = index_shuffle(shuffle_iops, 119_315_717_514_047, 2020, repeat=1)
-# tester.test_value(index_of_2020, 4684, 'Solution to part 2 is %s')
+
+index_of_2020 = index_shuffle(shuffle_iops, 119_315_717_514_047, 2020, repeat=101_741_582_076_661)
+tester.test_value(index_of_2020, 4684, 'Solution to part 2 is %s')
