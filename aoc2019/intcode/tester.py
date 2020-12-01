@@ -26,6 +26,8 @@ class Tester(object):
         self._count = 0
         self._fails = 0
         self._success = 0
+        import atexit
+        atexit.register(self.summary)
 
     def test(self, test_state, message, success_message=''):
         self._count += 1
