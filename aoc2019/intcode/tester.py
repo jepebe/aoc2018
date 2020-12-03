@@ -1,3 +1,6 @@
+import time
+
+
 def red(text):
     return color(text, 196)
 
@@ -28,6 +31,7 @@ class Tester(object):
         self._success = 0
         import atexit
         atexit.register(self.summary)
+        self.now = time.time()
 
     def test(self, test_state, message, success_message=''):
         self._count += 1
@@ -51,6 +55,7 @@ class Tester(object):
             print(red(f'Error! {self._fails} of {self._count} test(s) failed!'))
         else:
             print(green(f'Success! {self._success} test(s) ran successfully!'))
+        print(yellow(f'Running time: {time.time() - self.now:0.04f} s.'))
 
 
 if __name__ == '__main__':
