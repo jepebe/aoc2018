@@ -15,19 +15,20 @@ def create_grid(lines):
     for line in lines:
         x = 0
         for c in line:
-            grid[(x, y)] = c
+            if c != '.':
+                grid[(x, y)] = c
             x += 1
         y += 1
     return grid
 
 
-def count_adjacent(x, y, grid, extend=False):
+def count_adjacent(x, y, grid, max_x, max_y, extend=False):
     directions = ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))
     count = 0
     for dx, dy in directions:
         pos = x + dx, y + dy
         if extend:
-            while pos in grid and grid[pos] == '.':
+            while 0 <= pos[0] <= max_x and 0 <= pos[1] <= max_y and pos not in grid:
                 pos = pos[0] + dx, pos[1] + dy
         if pos in grid and grid[pos] == '#':
             count += 1
@@ -41,7 +42,7 @@ def iterate(grid, max_neighbour=4, extend=False):
     for y in range(min_y, max_y + 1):
         for x in range(min_x, max_x + 1):
             if (x, y) in grid:
-                neighbor_count = count_adjacent(x, y, grid, extend)
+                neighbor_count = count_adjacent(x, y, grid, max_x, max_y, extend)
                 if grid[(x, y)] == 'L' and neighbor_count == 0:
                     new_grid[(x, y)] = '#'
                     changes += 1
@@ -50,8 +51,6 @@ def iterate(grid, max_neighbour=4, extend=False):
                     changes += 1
                 else:
                     new_grid[(x, y)] = grid[(x, y)]
-            else:
-                new_grid[(x, y)] = '.'
 
     return new_grid, changes
 
@@ -66,7 +65,6 @@ def stabilize(grid, extend=False):
     return iterations - 1, sum(1 for s in grid.values() if s == '#')
 
 
-
 seats = """L.LL.LL.LL
 LLLLLLL.LL
 L.L.L..L..
@@ -77,7 +75,6 @@ L.LLLLL.LL
 LLLLLLLLLL
 L.LLLLLL.L
 L.LLLLL.LL""".split('\n')
-
 
 grid = create_grid(seats)
 tester.test_value(stabilize(grid), (5, 37))
