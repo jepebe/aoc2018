@@ -47,3 +47,9 @@ tester.test_value(parse_seat('BBFFBBFRLL'), (102, 4, 820))
 lines = read_file()
 max_seat, my_seat = find_max_line(lines)
 tester.test_value((max_seat, my_seat), (928, 610), 'solution to exercise 1=%s and 2=%s')
+
+max_seat = max(int(seat.replace('B', '1').replace('F', '0').replace('R', '1').replace('L', '0'), base=2) for seat in lines)
+tester.test_value(max_seat, 928, 'solution to exercise 1=%s')
+
+max_seat = max(int(''.join(map(str, ['FBLR'.index(c) % 2 for c in s.strip()])), 2) for s in lines)
+tester.test_value(max_seat, 928, 'solution to exercise 1=%s')
