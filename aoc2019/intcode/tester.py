@@ -24,7 +24,9 @@ def yellow(text):
 class Tester(object):
 
     def __init__(self, name) -> None:
-        super().__init__()
+        if not name:
+            raise RuntimeError('Missing test name!')
+        print(blue(f'*** {name} ***'))
         self._name = name
         self._count = 0
         self._fails = 0
