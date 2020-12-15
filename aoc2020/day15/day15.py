@@ -8,7 +8,10 @@ def speak(nums, until):
     spoken = {n: i + 1 for i, n in enumerate(nums)}
     last = nums[-1]
     for i in range(len(nums) + 1, until + 1):
-        s = i - 1 - spoken[last] if last in spoken else 0
+        try:
+            s = i - 1 - spoken[last]
+        except KeyError:
+            s = 0
         spoken[last] = i - 1
         last = s
     return last
