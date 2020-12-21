@@ -86,37 +86,7 @@ def find_corners(tiles):
         if count == 2:
             prod *= tid
             corners.append(tid)
-    return prod, corners
-
-
-def transpose(tile, size=10):
-    new_tile = {}
-    for y in range(size):
-        for x in range(size):
-            new_tile[y, x] = tile[x, y]
-    return new_tile
-
-
-def flip_horizontal(tile, size=10):
-    new_tile = {}
-    for y in range(size):
-        for x in range(size):
-            new_tile[size - 1 - x, y] = tile[x, y]
-    return new_tile
-
-
-def flip_vertical(tile, size=10):
-    new_tile = {}
-    for y in range(size):
-        for x in range(size):
-            new_tile[x, size - 1 - y] = tile[x, y]
-    return new_tile
-
-
-def rotate90(tile, size=10):
-    tile = transpose(tile, size)
-    tile = flip_horizontal(tile, size)
-    return tile
+    return prod
 
 
 def check_right_edge(tile, otile):
@@ -186,7 +156,6 @@ def create_grid(tiles, arrangement):
                     grid[gx + tx - 1, gy + ty - 1] = c
             gx += extents[0][1] - 1
         gy += extents[1][1] - 1
-    # ic.print_map(grid, {'#': '#', '.': '.'})
     return grid
 
 
@@ -195,6 +164,7 @@ def arrange(tiles):
     tid = list(tiles.keys())[0]
     arrangement[tid] = (0, 0)
     queue = [tid]
+    tile_ext = ic.find_extents_nd(tiles[tid], 2)
 
     while queue:
         tid = queue.pop(0)
@@ -209,7 +179,7 @@ def arrange(tiles):
                     queue.append(otid)
                     continue
 
-                tile90 = rotate90(otile)
+                tile90 = ic.rotate90(otile, tile_ext)
                 adj, dx, dy = check_if_adjacent(tile, tile90)
                 if adj:
                     arrangement[otid] = (x + dx, y + dy)
@@ -217,7 +187,7 @@ def arrange(tiles):
                     tiles[otid] = tile90
                     continue
 
-                tile180 = rotate90(tile90)
+                tile180 = ic.rotate90(tile90, tile_ext)
                 adj, dx, dy = check_if_adjacent(tile, tile180)
                 if adj:
                     arrangement[otid] = (x + dx, y + dy)
@@ -225,7 +195,7 @@ def arrange(tiles):
                     tiles[otid] = tile180
                     continue
 
-                tile270 = rotate90(tile180)
+                tile270 = ic.rotate90(tile180, tile_ext)
                 adj, dx, dy = check_if_adjacent(tile, tile270)
                 if adj:
                     arrangement[otid] = (x + dx, y + dy)
@@ -233,7 +203,7 @@ def arrange(tiles):
                     tiles[otid] = tile270
                     continue
 
-                tile_flip_v = flip_vertical(otile)
+                tile_flip_v = ic.flip_vertical(otile, tile_ext)
                 adj, dx, dy = check_if_adjacent(tile, tile_flip_v)
                 if adj:
                     arrangement[otid] = (x + dx, y + dy)
@@ -241,7 +211,7 @@ def arrange(tiles):
                     tiles[otid] = tile_flip_v
                     continue
 
-                tile_flip_v = flip_vertical(tile90)
+                tile_flip_v = ic.flip_vertical(tile90, tile_ext)
                 adj, dx, dy = check_if_adjacent(tile, tile_flip_v)
                 if adj:
                     arrangement[otid] = (x + dx, y + dy)
@@ -249,14 +219,13 @@ def arrange(tiles):
                     tiles[otid] = tile_flip_v
                     continue
 
-                tile_flip_h = flip_horizontal(otile)
+                tile_flip_h = ic.flip_horizontal(otile, tile_ext)
                 adj, dx, dy = check_if_adjacent(tile, tile_flip_h)
                 if adj:
                     arrangement[otid] = (x + dx, y + dy)
                     queue.append(otid)
                     tiles[otid] = tile_flip_h
                     continue
-
     return create_grid(tiles, arrangement)
 
 
@@ -264,6 +233,7 @@ def find_sea_monster(grid, monster):
     monster_ext = ic.find_extents_nd(monster, 2)
     ext = ic.find_extents_nd(grid, 2)
     unique_monster_points = set()
+    monsters = 0
     for dy in range(ext[1][1] - monster_ext[1][1]):
         for dx in range(ext[0][1] - monster_ext[0][1]):
             monster_points = []
@@ -271,9 +241,9 @@ def find_sea_monster(grid, monster):
                 if grid[mx + dx, my + dy] == '#':
                     monster_points.append((mx + dx, my + dy))
             if len(monster_points) == len(monster):
+                monsters += 1
                 for p in monster_points:
                     unique_monster_points.add(p)
-
     return sum(1 for p in grid if grid[p] == '#' and p not in unique_monster_points)
 
 
@@ -286,33 +256,33 @@ def search_for_monster(grid):
     if count != max_points:
         return count
 
-    rotate_grid = rotate90(grid, ext[0][1] + 1)
+    rotate_grid = ic.rotate90(grid, ext)
     count = find_sea_monster(rotate_grid, monster)
     if count != max_points:
         return count
 
-    rotate_grid = rotate90(rotate_grid, ext[0][1] + 1)
+    rotate_grid = ic.rotate90(rotate_grid, ext)
     count = find_sea_monster(rotate_grid, monster)
     if count != max_points:
         return count
 
-    rotate_grid = rotate90(rotate_grid, ext[0][1] + 1)
+    rotate_grid = ic.rotate90(rotate_grid, ext)
     count = find_sea_monster(rotate_grid, monster)
     if count != max_points:
         return count
 
-    flip_grid = flip_vertical(grid, ext[0][1] + 1)
+    flip_grid = ic.flip_vertical(grid, ext)
     count = find_sea_monster(flip_grid, monster)
     if count != max_points:
         return count
 
-    flip_grid = flip_horizontal(grid, ext[0][1] + 1)
+    flip_grid = ic.flip_horizontal(grid, ext)
     count = find_sea_monster(flip_grid, monster)
     if count != max_points:
         return count
 
-    rotate_grid = rotate90(grid, ext[0][1] + 1)
-    flip_grid = flip_horizontal(rotate_grid, ext[0][1] + 1)
+    rotate_grid = ic.rotate90(grid, ext)
+    flip_grid = ic.flip_horizontal(rotate_grid, ext)
     count = find_sea_monster(flip_grid, monster)
     if count != max_points:
         return count
@@ -320,11 +290,10 @@ def search_for_monster(grid):
 
 tiles = parse(read_file('_example'))
 grid = arrange(tiles)
-
-tester.test_value(find_corners(tiles)[0], 20899048083289)
+tester.test_value(find_corners(tiles), 20899048083289)
 tester.test_value(search_for_monster(grid), 273)
 
 tiles = parse(read_file(''))
 grid = arrange(tiles)
-tester.test_value(find_corners(tiles)[0], 18482479935793, 'solution to part 1=%s')
+tester.test_value(find_corners(tiles), 18482479935793, 'solution to part 1=%s')
 tester.test_value(search_for_monster(grid), 2118, 'solution to part 2=%s')
