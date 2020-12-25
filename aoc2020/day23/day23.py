@@ -144,7 +144,7 @@ def cups(n, moves=10, cups=9):
         pb = arr.next_node(pa)
         pc = arr.next_node(pb)
         dest = curr.value - 1
-        while dest == 0 or dest in (pa.value, pb.value, pc.value):
+        while dest in (0, pa.value, pb.value, pc.value):
             dest -= 1
             if dest <= 0:
                 dest = cups
