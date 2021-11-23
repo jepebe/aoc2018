@@ -54,5 +54,5 @@ int main() {
 
     printf("Santa ends up on floor %zd enters the basement at %zd\n", floor, basement);
 
-    test_summary(&tester);
+    return test_summary(&tester);
 }

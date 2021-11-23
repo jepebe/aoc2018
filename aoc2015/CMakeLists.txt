@@ -1,3 +1,6 @@
 add_executable(day1 day1/a.c)
 add_executable(day21 day21/a.c)
 add_executable(day22 day22/a.c)
+add_executable(day23 day23/a.c)
+add_executable(day24 day24/a.c)
+add_executable(day25 day25/a.c)

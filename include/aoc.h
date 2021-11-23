@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define LEN(x)  (sizeof(x) / sizeof((x)[0]))
+
 typedef struct {
     char *name;
     struct timespec time;
@@ -66,7 +68,20 @@ void testi(Tester *tester, int a, int b, char *msg) {
     }
 }
 
-void test_summary(Tester *tester) {
+void test_u64(Tester *tester, uint64_t a, uint64_t b, char *msg) {
+    tester->count++;
+    int count = tester->count;
+
+    if (a == b) {
+        tester->success++;
+        printf("\x1b[0;32m\u2705  Test #%d %llu == %llu %s\x1b[0m\n", count, a, b, msg);
+    } else {
+        tester->fail++;
+        printf("\x1b[0;31m\u274C  Test #%d %llu != %llu %s\x1b[0m\n", count, a, b, msg);
+    }
+}
+
+int test_summary(Tester *tester) {
     if (tester->fail > 0) {
         uint8_t fail_count = tester->fail;
         uint8_t count = tester->count;
@@ -77,6 +92,8 @@ void test_summary(Tester *tester) {
     }
     double diff = timespec_diff(&tester->time);
     printf("\x1b[33mRunning time: %0.5f s.\x1b[0m\n", diff);
+
+    return tester->fail;
 }
 
 char *read_input(const char *path) {
