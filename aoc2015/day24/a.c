@@ -33,17 +33,6 @@ void reverse(uint8_t elements[], size_t count) {
     }
 }
 
-int count_bits(int n, int max_bits) {
-    int bits = 0;
-    for (int i = 0; i < max_bits; ++i) {
-        if (n & 0x1) {
-            bits++;
-        }
-        n >>= 1;
-    }
-    return bits;
-}
-
 int weight(uint8_t elements[], size_t count, int mask) {
     int w = 0;
     for (int i = 0; i < (int)count; ++i) {
@@ -72,7 +61,7 @@ uint64_t greedy(Balancer *balancer, int bits, int bit_num) {
     }
 
     int current = bits | (0x1 << bit_num);
-    int bit_count = count_bits(current, balancer->package_count);
+    int bit_count = count_set_bits(current);
 
     if (bit_count > balancer->min_package_count) {
         return balancer->min_qe;

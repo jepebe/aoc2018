@@ -5,7 +5,7 @@ uint64_t next_number(uint64_t previous) {
     return (previous * 252533) % 33554393;
 }
 
-int index(int row, int column) {
+int diag_index(int row, int column) {
     int idx = 0;
 
     for (int i = 1; i <= column; ++i) {
@@ -31,11 +31,11 @@ int main() {
     //row 2947, column 3029.
     Tester tester = create_tester("Let It Snow");
 
-    testi(&tester, index(1, 1), 1, "");
-    testi(&tester, index(3, 3), 13, "");
-    testi(&tester, index(5, 1), 11, "");
-    testi(&tester, index(4, 4), 25, "");
-    testi(&tester, index(1, 6), 21, "");
+    testi(&tester, diag_index(1, 1), 1, "");
+    testi(&tester, diag_index(3, 3), 13, "");
+    testi(&tester, diag_index(5, 1), 11, "");
+    testi(&tester, diag_index(4, 4), 25, "");
+    testi(&tester, diag_index(1, 6), 21, "");
 
     test_u64(&tester, next_number(20151125), 31916031, "");
     test_u64(&tester, next_number(31916031), 18749137, "");
@@ -44,7 +44,7 @@ int main() {
     testi(&tester, number_at(1), 20151125, "");
     testi(&tester, number_at(6), 17289845, "");
 
-    testi(&tester, number_at(index(2947, 3029)), 19980801, "solution to part 1");
+    testi(&tester, number_at(diag_index(2947, 3029)), 19980801, "solution to part 1");
     
     return test_summary(&tester);
 }
