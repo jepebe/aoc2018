@@ -16,7 +16,7 @@ include_directories(include)
 
 add_subdirectory(aoc2015)
 add_subdirectory(aoc2016)
-# add_subdirectory(aoc2021)
+add_subdirectory(aoc2021)
 
 enable_testing()
 
