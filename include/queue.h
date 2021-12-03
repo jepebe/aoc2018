@@ -14,6 +14,8 @@ typedef struct {
     QueueNode *tail;
 } Queue;
 
+typedef void (*QueueVisitorFunc)(Value *, void *);
+
 Queue *queue_create() {
     Queue *q = (Queue *)malloc(sizeof(Queue));
     q->head = NULL;
@@ -68,6 +70,38 @@ Value queue_pop_front(Queue *queue) {
     return v;
 }
 
+void queue_remove_node(Queue *queue, QueueNode *node) {
+    if(node->next == NULL) {
+        queue->tail = node->previous;
+
+        if(node->previous != NULL) {
+            node->previous->next = NULL;
+        }
+    } 
+    
+    if (node->previous == NULL) {
+        queue->head = node->next;
+
+        if(node->next != NULL) {
+            node->next->previous = NULL;
+        }
+    }
+
+    if (node->next != NULL && node->previous != NULL) {
+        node->previous->next = node->next;
+        node->next->previous = node->previous;
+    }
+    free(node);
+}
+
+void queue_add_all(Queue *q, Queue *from) {
+    QueueNode *node = from->head;
+    while (node) {
+        queue_append(q, node->value);
+        node = node->next;
+    }
+}
+
 void queue_free(Queue *queue) {
     QueueNode *node = queue->head;
     while (node) {
@@ -78,12 +112,20 @@ void queue_free(Queue *queue) {
     free(queue);
 }
 
-s64 queue_sum_signed(Queue *queue) {
+void queue_visit(Queue *queue, QueueVisitorFunc vf, void *ctx) {
     QueueNode *node = queue->head;
-    s64 sum = 0;
     while (node) {
-        sum += node->value.as.signed_64;
+        vf(&node->value, ctx);
         node = node->next;
     }
+}
+
+static void signed_sum(Value *value, void *sum_ptr) {
+    (*((s64 *)sum_ptr)) += value->as.signed_64;
+}
+
+s64 queue_sum_signed(Queue *queue) {
+    s64 sum = 0;
+    queue_visit(queue, signed_sum, &sum);
     return sum;
 }

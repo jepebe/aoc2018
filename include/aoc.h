@@ -36,6 +36,8 @@ Tester create_tester(char *name) {
     tester.count = 0;
     tester.success = 0;
     tester.fail = 0;
+
+    printf("\x1b[33m--== %s ==--\x1b[0m\n", name);
     return tester;
 }
 
@@ -62,12 +64,12 @@ void test(Tester *tester, bool test_state, char *message) {
     if (test_state) {
         tester->success++;
         if (message) {
-            printf("\x1b[0;32m\u2705  Test #%d OK! %s\x1b[0m\n", tester->count, message);
+            printf("\x1b[0;32m\u2705  Test #%02d OK! %s\x1b[0m\n", tester->count, message);
         }
     } else {
         tester->fail++;
 
-        printf("\x1b[0;31m\u274C  Test #%d Error! %s\x1b[0m\n", tester->count, message);
+        printf("\x1b[0;31m\u274C  Test #%02d Error! %s\x1b[0m\n", tester->count, message);
     }
 }
 
@@ -78,11 +80,11 @@ void testi(Tester *tester, int a, int b, char *msg) {
     if (a == b) {
         tester->success++;
         if (msg) {
-            printf("\x1b[0;32m\u2705  Test #%d %d == %d %s\x1b[0m\n", count, a, b, msg);
+            printf("\x1b[0;32m\u2705  Test #%02d %d == %d %s\x1b[0m\n", count, a, b, msg);
         }
     } else {
         tester->fail++;
-        printf("\x1b[0;31m\u274C  Test #%d  %d != %d %s\x1b[0m\n", count, a, b, msg);
+        printf("\x1b[0;31m\u274C  Test #%02d  %d != %d %s\x1b[0m\n", count, a, b, msg);
     }
 }
 
@@ -93,11 +95,11 @@ void test_u64(Tester *tester, uint64_t a, uint64_t b, char *msg) {
     if (a == b) {
         tester->success++;
         if (msg) {
-            printf("\x1b[0;32m\u2705  Test #%d %llu == %llu %s\x1b[0m\n", count, a, b, msg);
+            printf("\x1b[0;32m\u2705  Test #%02d %llu == %llu %s\x1b[0m\n", count, a, b, msg);
         }
     } else {
         tester->fail++;
-        printf("\x1b[0;31m\u274C  Test #%d %llu != %llu %s\x1b[0m\n", count, a, b, msg);
+        printf("\x1b[0;31m\u274C  Test #%02d %llu != %llu %s\x1b[0m\n", count, a, b, msg);
     }
 }
 
@@ -108,15 +110,20 @@ void test_str(Tester *tester, char *a, char *b, char *msg) {
     if (strcmp(a, b) == 0) {
         tester->success++;
         if (msg) {
-            printf("\x1b[0;32m\u2705  Test #%d %s == %s %s\x1b[0m\n", count, a, b, msg);
+            printf("\x1b[0;32m\u2705  Test #%02d %s == %s %s\x1b[0m\n", count, a, b, msg);
         }
     } else {
         tester->fail++;
-        printf("\x1b[0;31m\u274C  Test #%d %s != %s %s\x1b[0m\n", count, a, b, msg);
+        printf("\x1b[0;31m\u274C  Test #%02d %s != %s %s\x1b[0m\n", count, a, b, msg);
     }
 }
 
+void test_section(char *name) {
+    printf("\n\x1b[33m[%s]\x1b[0m\n", name);
+}
+
 int test_summary(Tester *tester) {
+    printf("\n");
     if (tester->fail > 0) {
         u16 fail_count = tester->fail;
         u16 count = tester->count;
@@ -138,6 +145,14 @@ u8 count_set_bits(u64 n) {
         count++;
     }
     return count;
+}
+
+void print_bits(size_t bits, u64 value) {
+    for (int i = bits - 1; i >= 0; i--) {
+        unsigned char byte = (value >> i) & 1;
+        printf("%d", byte);
+    }
+    puts("");
 }
 
 char *read_input(const char *path) {

@@ -2,6 +2,8 @@
 #include "queue.h"
 
 void test_queuing(Tester *tester) {
+    test_section("Queueing");
+
     Queue *q = queue_create();
 
     testi(tester, queue_length(q), 0, "queue length");
@@ -62,10 +64,35 @@ void test_queuing(Tester *tester) {
     queue_free(q);
 }
 
+void test_removal(Tester *tester) {
+    test_section("Removal");
+
+    Queue *q = queue_create();
+
+    queue_append(q, UNSIGNED_VAL(1337));
+    queue_append(q, UNSIGNED_VAL(0xA5A5));
+    queue_append(q, UNSIGNED_VAL(0xB00B));
+
+    queue_remove_node(q, q->head);
+
+    test(tester, is_value_equal(&q->head->value, &UNSIGNED_VAL(0xA5A5)), "A5A5");
+    test(tester, is_value_equal(&q->tail->value, &UNSIGNED_VAL(0xB00B)), "B00B");
+
+    queue_remove_node(q, q->tail);
+    test(tester, is_value_equal(&q->head->value, &UNSIGNED_VAL(0xA5A5)), "A5A5");
+    test(tester, is_value_equal(&q->tail->value, &UNSIGNED_VAL(0xA5A5)), "A5A5");
+
+    test(tester, q->head->previous == NULL, "NULL");
+    test(tester, q->head->next == NULL, "NULL");
+
+    queue_free(q);
+}
+
 int main() {
     Tester tester = create_tester("Queuing");
 
     test_queuing(&tester);
+    test_removal(&tester);
 
     return test_summary(&tester);
 }
