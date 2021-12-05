@@ -1,6 +1,7 @@
 #pragma once
 #include "aoc.h"
 #include "queue.h"
+#include <stdlib.h>
 
 typedef Value (*LineFormatter)(char *);
 
@@ -35,4 +36,33 @@ static Value int_line_fmt(char *line) {
 
 Queue *read_lines_as_ints(char *content) {
     return read_lines_fmt(content, int_line_fmt);
+}
+
+char *replace_char(char *str, char find, char replace) {
+    char *current_pos = strchr(str, find);
+    while (current_pos) {
+        *current_pos = replace;
+        current_pos = strchr(current_pos, find);
+    }
+    return str;
+}
+
+char *x_strchr(char *data, char find, int line) {
+    char *found = strchr(data, find);
+    if (!found) {
+        printf("[%d] Did not find '%c' in '%s'\n", line, find, data);
+        exit(EXIT_FAILURE);
+    }
+    return found;
+}
+
+long x_strtol(char *data, int base, char **end, int line) {
+    long value = strtol(data, end, base);
+
+    // || *end != '\0'
+    if (*end == data || errno == ERANGE) {
+        printf("[%d] Did not find an integer at '%s'\n", line, data);
+        exit(EXIT_FAILURE);
+    }
+    return value;
 }

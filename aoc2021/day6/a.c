@@ -17,10 +17,11 @@ int main() {
 
     test_section("Solutions");
 
-    char *data = read_input("../aoc2021/day4/input");
+    char *data = read_input("../aoc2021/day6/input");
     (void)data;
 
     testi(&tester, 0, 0, "solution to part 1");
+    
     testi(&tester, 0, 0, "solution to part 2");
 
     return test_summary(&tester);
