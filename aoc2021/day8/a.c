@@ -84,7 +84,6 @@ int decode_combination(Segments *seg) {
 
     u8 ul_c = seg->digits[4] ^ seg->digits[1]; // upper left and center
     u8 c = 0;                                  // center
-    u8 ul = 0;                                 // upper left
     u8 ll = 0;                                 // lower left
     u8 ur = 0;                                 // upper right
 
@@ -93,12 +92,11 @@ int decode_combination(Segments *seg) {
 
         if (count_set_bits(digit) == 6) {
             // 6, 9, 0
-            u8 zero = ul_c ^ (digit & ul_c);         // 6 and 9 will xor away center
+            u8 zero = ul_c ^ (digit & ul_c);         // 6 and 9 will AND away center
             u8 six_or_nine = seg->digits[8] ^ digit; // xor will leave ur or ll
 
             if (zero) {
                 c = zero;
-                ul = ul_c ^ (ul_c & c); // can find upper left since we have center
                 seg->digits[0] = digit;
             } else if (six_or_nine) {
                 // if six_or_nine overlaps with 1 we have upper right
