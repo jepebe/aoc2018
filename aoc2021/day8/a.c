@@ -69,52 +69,45 @@ int count_unique(Signals *signals) {
 }
 
 int decode_combination(Segments *seg) {
-
     for (int j = 0; j < 10; j++) {
         u8 digit = seg->seg[j];
-        if(count_set_bits(digit) == 2) {
+        if (count_set_bits(digit) == 2) {
             seg->digits[1] = digit;
-        } else if(count_set_bits(digit) == 4) {
+        } else if (count_set_bits(digit) == 4) {
             seg->digits[4] = digit;
-        } else if(count_set_bits(digit) == 3) {
+        } else if (count_set_bits(digit) == 3) {
             seg->digits[7] = digit;
-        } else if(count_set_bits(digit) == 7) {
+        } else if (count_set_bits(digit) == 7) {
             seg->digits[8] = digit;
         }
     }
-    //u8 top = seg->digits[7] ^ seg->digits[1];
-    u8 ul_c = seg->digits[4] ^ seg->digits[1];
-    u8 c = 0;
-    //u8 bottom = 0;
-    u8 ul = 0;
-    u8 ll = 0;
-    u8 ur = 0;
-    //u8 lr = 0;
 
-    //printf("1=%d 7=%d top=%d ulc=%d\n", seg->digits[1], seg->digits[7], top, ul_c);
+    u8 ul_c = seg->digits[4] ^ seg->digits[1]; // upper left and center
+    u8 c = 0;                                  // center
+    u8 ul = 0;                                 // upper left
+    u8 ll = 0;                                 // lower left
+    u8 ur = 0;                                 // upper right
 
     for (int j = 0; j < 10; j++) {
         u8 digit = seg->seg[j];
 
-        if(count_set_bits(digit) == 6) {
+        if (count_set_bits(digit) == 6) {
             // 6, 9, 0
-            u8 zero = ul_c ^ (digit & ul_c);
-            u8 six_or_nine = seg->digits[8] ^ digit;
-        
-            if(zero) {
+            u8 zero = ul_c ^ (digit & ul_c);         // 6 and 9 will xor away center
+            u8 six_or_nine = seg->digits[8] ^ digit; // xor will leave ur or ll
+
+            if (zero) {
                 c = zero;
-                ul = ul_c ^ (ul_c & c);
+                ul = ul_c ^ (ul_c & c); // can find upper left since we have center
                 seg->digits[0] = digit;
-                //printf("c=%d zero=%d ul=%d\n", c, digit, ul);
             } else if (six_or_nine) {
-                if(six_or_nine & seg->digits[1]) {
+                // if six_or_nine overlaps with 1 we have upper right
+                if (six_or_nine & seg->digits[1]) {
                     ur = six_or_nine;
                     seg->digits[6] = digit;
-                    //printf("ur=%d six=%d\n", ur, digit);
-                } else{
-                    ll = six_or_nine;
+                } else {
+                    ll = six_or_nine; // lower left since we have 9
                     seg->digits[9] = digit;
-                    //printf("ll=%d nine=%d\n", ll, digit);
                 }
             }
         }
@@ -123,40 +116,35 @@ int decode_combination(Segments *seg) {
     for (int j = 0; j < 10; j++) {
         u8 digit = seg->seg[j];
 
-        if(count_set_bits(digit) == 5) {
+        if (count_set_bits(digit) == 5) {
             // 2, 3, 5
 
-            if(digit & ur) {
+            if (digit & ur) {
                 // 2 or 3
-                if(digit & ll) {
+                if (digit & ll) {
                     // 2
                     seg->digits[2] = digit;
-                    //printf("two=%d\n", digit);
                 } else {
                     seg->digits[3] = digit;
-                    //printf("three=%d\n", digit);
                 }
-                
+
             } else {
                 // 5
                 seg->digits[5] = digit;
-                //printf("five=%d\n", digit);
-            }   
+            }
         }
     }
 
     int result = 0;
-    for(int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i) {
         result *= 10;
         u8 curd = seg->disp[i];
-        for(int j = 0; j < 10; ++j) {
-            if(curd == seg->digits[j]) {
-                //printf("%d ", j);
+        for (int j = 0; j < 10; ++j) {
+            if (curd == seg->digits[j]) {
                 result += j;
                 break;
             }
         }
-        
     }
     return result;
 }
@@ -164,7 +152,7 @@ int decode_combination(Segments *seg) {
 u64 totality(Signals *signals) {
     u64 total = 0;
 
-    for(int i = 0; i < signals->count; ++i) {
+    for (int i = 0; i < signals->count; ++i) {
         total += decode_combination(&signals->combination[i]);
     }
     return total;
