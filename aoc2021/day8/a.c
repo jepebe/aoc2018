@@ -12,6 +12,7 @@ typedef struct {
     u8 count;
 } Signals;
 
+// set bits where a,b,c,d,e,f,g = bit 0,1,2,3,4,5,6
 u8 set_bits(char *txt) {
     u8 val = 0;
     int n = strlen(txt);
@@ -92,8 +93,8 @@ int decode_combination(Segments *seg) {
 
         if (count_set_bits(digit) == 6) {
             // 6, 9, 0
-            u8 zero = ul_c ^ (digit & ul_c);         // 6 and 9 will AND away center
-            u8 six_or_nine = seg->digits[8] ^ digit; // xor will leave ur or ll
+            u8 zero = ul_c ^ (digit & ul_c);         // 6 and 9 will XOR away center
+            u8 six_or_nine = seg->digits[8] ^ digit; // XOR will leave ur or ll
 
             if (zero) {
                 c = zero;
@@ -116,18 +117,15 @@ int decode_combination(Segments *seg) {
 
         if (count_set_bits(digit) == 5) {
             // 2, 3, 5
-
-            if (digit & ur) {
-                // 2 or 3
-                if (digit & ll) {
-                    // 2
+            u8 two_or_three = digit & ur;// upper right is only in 2 or 3
+            
+            if (two_or_three) { 
+                if (digit & ll) { // only 2 has lower left
                     seg->digits[2] = digit;
                 } else {
                     seg->digits[3] = digit;
                 }
-
-            } else {
-                // 5
+            } else { 
                 seg->digits[5] = digit;
             }
         }
