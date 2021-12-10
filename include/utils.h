@@ -66,3 +66,24 @@ long x_strtol(char *data, int base, char **end, int line) {
     }
     return value;
 }
+
+bool is_opening_bracket(char c) {
+    return (c == '(' || c == '[' || c == '{' || c == '<');
+}
+
+bool is_closing_bracket(char c) {
+    return (c == ')' || c == ']' || c == '}' || c == '>');
+}
+
+bool paired_brackets(char a, char b) {
+    if (a == '(' & b == ')') {
+        return true;
+    } else if (a == '[' && b == ']') {
+        return true;
+    } else if (a == '{' && b == '}') {
+        return true;
+    } else if (a == '<' && b == '>') {
+        return true;
+    }
+    return false;
+}

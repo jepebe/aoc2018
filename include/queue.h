@@ -63,6 +63,27 @@ Value queue_pop_front(Queue *queue) {
 
     if (queue->head == NULL) {
         queue->tail = NULL;
+    } else {
+        queue->head->previous = NULL;
+    }
+
+    Value v = node->value;
+    free(node);
+    return v;
+}
+
+Value queue_pop_back(Queue *queue) {
+    if (queue->tail == NULL) {
+        return NIL_VAL;
+    }
+
+    QueueNode *node = queue->tail;
+    queue->tail = node->previous;
+
+    if (queue->tail == NULL) {
+        queue->head = NULL;
+    } else {
+        queue->tail->next = NULL;
     }
 
     Value v = node->value;

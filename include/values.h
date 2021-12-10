@@ -10,6 +10,7 @@ typedef struct {
 typedef enum {
     VAL_BOOL,
     VAL_NIL,
+    VAL_CHAR,
     VAL_POINT,
     VAL_SIGNED_64,
     VAL_UNSIGNED_64,
@@ -24,6 +25,7 @@ typedef struct {
         s64 signed_64;
         Point point;
         char *string;
+        char character;
     } as;
 } Value;
 
@@ -36,6 +38,9 @@ typedef struct {
 #define IS_STRING(value) ((value).type == VAL_STRING)
 #define STRING_VAL(value) ((Value){VAL_STRING, {.string = value}})
 
+#define IS_CHAR(value) ((value).type == VAL_CHAR)
+#define CHAR_VAL(value) ((Value){VAL_CHAR, {.character = value}})
+
 #define SIGNED_VAL(value) ((Value){VAL_SIGNED_64, {.signed_64 = value}})
 #define UNSIGNED_VAL(value) ((Value){VAL_UNSIGNED_64, {.unsigned_64 = value}})
 
@@ -46,6 +51,8 @@ bool is_value_equal(const Value *a, const Value *b) {
         return a->as.unsigned_64 == b->as.unsigned_64;
     } else if (a->type == VAL_SIGNED_64) {
         return a->as.signed_64 == b->as.signed_64;
+    } else if (a->type == VAL_CHAR) {
+        return a->as.character == b->as.character;
     } else if (a->type == VAL_NIL) {
         return true;
     } else if (a->type == VAL_POINT) {
