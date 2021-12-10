@@ -11,18 +11,13 @@ typedef struct {
     u8 angle_brackets;
 } SyntaxError;
 
-Queue *parse_data(char *data) {
-    Queue *q = read_lines(data);
-    return q;
-}
-
 SyntaxError check_syntax(char *line) {
     SyntaxError se = {0};
     Queue *stack = queue_create();
     char *cur = line;
     while (*cur) {
         char next = *cur;
-        
+
         if (is_opening_bracket(next)) {
             queue_append(stack, CHAR_VAL(next));
         }
@@ -132,20 +127,28 @@ int compare_function(const void *a, const void *b) {
     return 0;
 }
 
+typedef struct {
+    u64 *data;
+    int count;
+} ArrayU64;
+
+void scoring(Value *value, void *ctx) {
+    ArrayU64 *array = (ArrayU64 *)ctx;
+    u64 score = autocomplete(value->as.string);
+    array->data[array->count++] = score;
+}
+
 u64 score_autocomplete(Queue *lines) {
-    u64 *array = (u64 *)malloc(sizeof(u64) * queue_length(lines));
-    QueueNode *node = lines->head;
-    int count = 0;
-    while (node) {
-        u64 score = autocomplete(node->value.as.string);
-        array[count++] = score;
-        node = node->next;
-    }
+    ArrayU64 array;
+    array.count = 0;
+    array.data = (u64 *)malloc(sizeof(u64) * queue_length(lines));
 
-    qsort(array, count, sizeof(u64), compare_function);
+    queue_visit(lines, scoring, &array);
 
-    u64 score = array[count / 2];
-    free(array);
+    qsort(array.data, array.count, sizeof(u64), compare_function);
+
+    u64 score = array.data[array.count / 2];
+    free(array.data);
     return score;
 }
 
@@ -157,7 +160,7 @@ void test_examples(Tester *tester) {
     testi(tester, se.curly_brackets, 1, "curly brackets");
 
     char *data = read_input("../aoc2021/day10/test");
-    Queue *lines = parse_data(data);
+    Queue *lines = read_lines(data);
     int score = score_syntax_errors(lines);
     testi(tester, score, 26397, "score");
 
@@ -180,7 +183,7 @@ int main() {
     test_section("Solutions");
 
     char *data = read_input("../aoc2021/day10/input");
-    Queue *lines = parse_data(data);
+    Queue *lines = read_lines(data);
     int score = score_syntax_errors(lines);
 
     testi(&tester, score, 366027, "solution to part 1");
