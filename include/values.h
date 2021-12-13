@@ -14,7 +14,8 @@ typedef enum {
     VAL_POINT,
     VAL_SIGNED_64,
     VAL_UNSIGNED_64,
-    VAL_STRING
+    VAL_STRING,
+    VAL_PTR
 } ValueType;
 
 typedef struct {
@@ -26,8 +27,11 @@ typedef struct {
         Point point;
         char *string;
         char character;
+        void *ptr;
     } as;
 } Value;
+
+#define BOOL_VAL(value) ((Value){VAL_BOOL, {.boolean = value}})
 
 #define NIL_VAL ((Value){VAL_NIL, {.unsigned_64 = 0}})
 #define IS_NIL(value) ((value).type == VAL_NIL)
@@ -37,6 +41,9 @@ typedef struct {
 
 #define IS_STRING(value) ((value).type == VAL_STRING)
 #define STRING_VAL(value) ((Value){VAL_STRING, {.string = value}})
+
+#define IS_POINTER(value) ((value).type == VAL_PTR)
+#define POINTER_VAL(value) ((Value){VAL_PTR, {.ptr = value}})
 
 #define IS_CHAR(value) ((value).type == VAL_CHAR)
 #define CHAR_VAL(value) ((Value){VAL_CHAR, {.character = value}})
@@ -53,6 +60,8 @@ bool is_value_equal(const Value *a, const Value *b) {
         return a->as.signed_64 == b->as.signed_64;
     } else if (a->type == VAL_CHAR) {
         return a->as.character == b->as.character;
+    } else if (a->type == VAL_PTR) {
+        return a->as.ptr == b->as.ptr;
     } else if (a->type == VAL_NIL) {
         return true;
     } else if (a->type == VAL_POINT) {
@@ -113,6 +122,8 @@ u32 hash_value(const Value *value) {
         return hash_u64(value->as.unsigned_64);
     } else if (value->type == VAL_SIGNED_64) {
         return hash_s64(value->as.signed_64);
+    } else if (value->type == VAL_PTR) {
+        return hash_u64((u64) value->as.ptr);
     } else if (value->type == VAL_STRING) {
         return hash_string(value->as.string, strlen(value->as.string));
     } else {

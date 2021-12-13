@@ -1,5 +1,6 @@
 #pragma once
 #include "aoc.h"
+#include "queue.h"
 #include "values.h"
 #include <stdlib.h>
 
@@ -97,6 +98,7 @@ bool dict_set(Dict *dict, Value *key, Value value) {
 
     entry->key = *key;
     entry->value = value;
+
     return is_new_key;
 }
 
@@ -113,6 +115,18 @@ bool dict_get(Dict *dict, Value *key, Value *value) {
     return true;
 }
 
+Queue *dict_keys(Dict *dict) {
+    Queue *q = queue_create();
+    for (int i = 0; i <= dict->capacity; i++) {
+        Entry *entry = &dict->entries[i];
+        if (IS_NIL(entry->key)) {
+            continue;
+        }
+        queue_append(q, entry->key);
+    }
+    return q;
+}
+
 bool dict_contains(Dict *dict, Value *key) {
     if (dict->count == 0) {
         return false;
@@ -121,6 +135,27 @@ bool dict_contains(Dict *dict, Value *key) {
     if (IS_NIL(entry->key)) {
         return false;
     }
+
+    return true;
+}
+
+bool dict_delete(Dict *dict, Value *key) {
+    if (dict->count == 0) {
+        return false;
+    }
+
+    // Find the entry.
+    Entry *entry = dict_find_entry(dict->entries, dict->capacity, key);
+    if (IS_NIL(entry->key)) {
+        return false;
+    }
+
+    // Place a tombstone in the entry.
+    entry->key = NIL_VAL;
+    entry->value = BOOL_VAL(true);
+
+    // todo adjust count?
+    dict->count--;
 
     return true;
 }

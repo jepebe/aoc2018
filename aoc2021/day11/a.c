@@ -29,7 +29,7 @@ Octopus parse_data(char *path) {
     for (int y = 0; y < 10; ++y) {
         char *line = node->value.as.string;
         for (int x = 0; x < 10; ++x) {
-            octo.octopus[index++] = line[x] - 48;
+            octo.octopus[index++] = line[x] - 48; // 48 is ascii for 0
         }
         node = node->next;
     }

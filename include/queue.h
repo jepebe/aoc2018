@@ -150,3 +150,17 @@ s64 queue_sum_signed(Queue *queue) {
     queue_visit(queue, signed_sum, &sum);
     return sum;
 }
+
+// allocates a string from the queue interpreting all values as char
+char *queue_as_string(Queue *queue) {
+    char *word = (char *)malloc(sizeof(char) * queue_length(queue) + 1);
+
+    int n = 0;
+    QueueNode *node = queue->head;
+    while(node) {
+        word[n++] = node->value.as.character;
+        node = node->next;
+    }
+    word[n] = '\0';
+    return word;
+}
