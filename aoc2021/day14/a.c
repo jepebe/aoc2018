@@ -1,6 +1,8 @@
 #include "aoc.h"
 #include "dict.h"
 #include "utils.h"
+#include <math.h>
+#include <stdint.h>
 #include <string.h>
 
 typedef struct {
@@ -16,7 +18,7 @@ typedef struct {
     Dict *rule_map;
 } Polymerization;
 
-Value rule_key(char a, char b) {
+Value pair_key(char a, char b) {
     return UNSIGNED_VAL((a << 8) | b);
 }
 
@@ -39,7 +41,7 @@ Polymerization parse_polymer(char *file) {
         strtok(NULL, " "); // skip arrow
         rule->replacement = *strtok(NULL, " ");
 
-        Value pair_val = rule_key(rule->a, rule->b);
+        Value pair_val = pair_key(rule->a, rule->b);
         dict_set(poly.rule_map, &pair_val, UNSIGNED_VAL(poly.rule_count - 1));
 
         node = node->next;
@@ -50,93 +52,85 @@ Polymerization parse_polymer(char *file) {
     return poly;
 }
 
-typedef struct {
-    Polymerization *poly;
-    u64 *letters;
-    int destination_depth;
-    Dict *memo;
-} PolymerTracker;
-
-Value depth_pair_key(int depth, char a, char b) {
-    return UNSIGNED_VAL((depth << 16) | (a << 8) | b);
-}
-
-u64 *create_letters() {
-    u64 *letters = malloc(sizeof(u64) * 26);
-    memset(letters, 0, 26);
-    return letters;
-}
-
-void add_letters(u64 const *src, u64 *dst) {
-    for (int i = 0; i < 26; ++i) {
-        dst[i] += src[i];
+void increment_pair(Dict *dict, char a, char b, u64 increment) {
+    Value key = pair_key(a, b);
+    if (!dict_contains(dict, &key)) {
+        dict_set(dict, &key, UNSIGNED_VAL(0));
     }
-}
-
-void polymerizer(PolymerTracker *tracker, char a, char b, int depth) {
-    if (depth == tracker->destination_depth) {
-        tracker->letters[a - 'A']++;
-        tracker->letters[b - 'A']++;
-        // printf("%c%c ", a, b);
-        return;
-    }
-
-    Value depth_key = depth_pair_key(depth, a, b);
-    if (dict_contains(tracker->memo, &depth_key)) {
-        Value val;
-        dict_get(tracker->memo, &depth_key, &val);
-        u64 *letters = val.as.ptr;
-        add_letters(letters, tracker->letters);
-        return;
-    }
-
-    Value rule_index;
-    Value key = rule_key(a, b);
-    dict_get(tracker->poly->rule_map, &key, &rule_index);
-
-    u64 *current_letters = tracker->letters;
-    tracker->letters = create_letters();
-
-    Rule *rule = &tracker->poly->rule[rule_index.as.unsigned_64];
-    
-    polymerizer(tracker, a, rule->replacement, depth + 1);
-    polymerizer(tracker, rule->replacement, b, depth + 1);
-   
-    tracker->letters[rule->replacement - 'A']--; // avoid double counting
-
-    dict_set(tracker->memo, &depth_key, POINTER_VAL(tracker->letters));
-
-    add_letters(tracker->letters, current_letters);
-
-    tracker->letters = current_letters;
+    Value val;
+    dict_get(dict, &key, &val);
+    val.as.unsigned_64 += increment;
+    dict_set(dict, &key, val);
 }
 
 u64 polymerize(Polymerization *poly, char *template, int iterations) {
-    PolymerTracker tracker = {0};
-    tracker.poly = poly;
-    tracker.destination_depth = iterations;
-    tracker.memo = dict_create();
-    tracker.letters = create_letters();
+    Dict *pairs = dict_create();
 
     int len = strlen(template);
-
     for (int i = 0; i < len - 1; ++i) {
-        
-        polymerizer(&tracker, template[i], template[i + 1], 0);
-        if(i > 0) {
-            int letter = (int)template[i] - 'A';
-            tracker.letters[letter]--; // remove overlap
-        }
+        char a = template[i];
+        char b = template[i + 1];
+        increment_pair(pairs, a, b, 1);
     }
 
-    // puts("");
-    u64 min = UINT64_MAX;
+    for (int i = 0; i < iterations; ++i) {
+        Dict *next = dict_create();
+        
+        Queue *keys = dict_keys(pairs);
+        QueueNode *node = keys->head;
+        while (node) {
+            Value *key = &node->value;
+            Value pair_count;
+            dict_get(pairs, key, &pair_count);
+
+            Value rule_index;
+            dict_get(poly->rule_map, key, &rule_index);
+            Rule *rule = &poly->rule[rule_index.as.unsigned_64];
+
+            char a = (key->as.unsigned_64 >> 8) & 0xFF;
+            char b = key->as.unsigned_64 & 0xFF;
+            u64 n = pair_count.as.unsigned_64;
+            increment_pair(next, a, rule->replacement, n);
+            increment_pair(next, rule->replacement, b, n);
+
+            node = node->next;
+        }
+        
+        dict_free(pairs);
+        pairs = next;
+    }
+
+    u64 letters[26];
+    for (int i = 0; i < 26; ++i) {
+        letters[i] = 0;
+    }
+
+    // Ensure that the endpoints are counted once
+    letters[template[0] - 'A'] += 1;
+    letters[template[len - 1] - 'A'] += 1;
+
+    Queue *keys = dict_keys(pairs);
+    QueueNode *node = keys->head;
+    while (node) {
+        Value *key = &node->value;
+        Value pair_count;
+        dict_get(pairs, key, &pair_count);
+
+        char a = (key->as.unsigned_64 >> 8) & 0xFF;
+        char b = key->as.unsigned_64 & 0xFF;
+        u64 n = pair_count.as.unsigned_64;
+
+        letters[a - 'A'] += n;
+        letters[b - 'A'] += n;
+
+        node = node->next;
+    }
+
+    u64 min = INT64_MAX;
     u64 max = 0;
     for (int i = 0; i < 26; ++i) {
-        u64 n = tracker.letters[i];
-        if (n > 0) {
-            // printf("%c = %llu\n", (i + 'A'), n);
-        }
+        u64 n = letters[i] / 2; // divide by 2 since we count everything twice
+        
         if (n > 0 && n < min) {
             min = n;
         }
@@ -144,7 +138,8 @@ u64 polymerize(Polymerization *poly, char *template, int iterations) {
             max = n;
         }
     }
-    // printf("max = %llu min = %llu\n", max, min);
+    
+    dict_free(pairs);
     return max - min;
 }
 
@@ -168,7 +163,7 @@ void test_examples(Tester *tester) {
 
     diff = polymerize(&poly, poly.template, 3);
     testi(tester, diff, 7, "step 3");
-    
+
     diff = polymerize(&poly, poly.template, 4);
     testi(tester, diff, 18, "step 4");
 
