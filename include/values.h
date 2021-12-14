@@ -122,6 +122,8 @@ u32 hash_value(const Value *value) {
         return hash_u64(value->as.unsigned_64);
     } else if (value->type == VAL_SIGNED_64) {
         return hash_s64(value->as.signed_64);
+    } else if (value->type == VAL_CHAR) {
+        return hash_s64(value->as.character);
     } else if (value->type == VAL_PTR) {
         return hash_u64((u64) value->as.ptr);
     } else if (value->type == VAL_STRING) {

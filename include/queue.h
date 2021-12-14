@@ -53,6 +53,21 @@ bool queue_empty(Queue *queue) {
     return queue->head == NULL;
 }
 
+void queue_insert_before(Queue *queue, QueueNode *node, Value value) {
+    if (node == queue->head) {
+        queue_append(queue, value);
+    } else {
+        QueueNode *q = (QueueNode *)malloc(sizeof(QueueNode));
+
+        q->previous = node->previous;
+        q->next = node;
+        q->value = value;
+
+        node->previous = q;
+        q->previous->next = q;
+    }
+}
+
 Value queue_pop_front(Queue *queue) {
     if (queue->head == NULL) {
         return NIL_VAL;
@@ -92,18 +107,18 @@ Value queue_pop_back(Queue *queue) {
 }
 
 void queue_remove_node(Queue *queue, QueueNode *node) {
-    if(node->next == NULL) {
+    if (node->next == NULL) {
         queue->tail = node->previous;
 
-        if(node->previous != NULL) {
+        if (node->previous != NULL) {
             node->previous->next = NULL;
         }
-    } 
-    
+    }
+
     if (node->previous == NULL) {
         queue->head = node->next;
 
-        if(node->next != NULL) {
+        if (node->next != NULL) {
             node->next->previous = NULL;
         }
     }
@@ -153,11 +168,11 @@ s64 queue_sum_signed(Queue *queue) {
 
 // allocates a string from the queue interpreting all values as char
 char *queue_as_string(Queue *queue) {
-    char *word = (char *)malloc(sizeof(char) * queue_length(queue) + 1);
+    char *word = malloc(sizeof(char) * queue_length(queue) + 1);
 
     int n = 0;
     QueueNode *node = queue->head;
-    while(node) {
+    while (node) {
         word[n++] = node->value.as.character;
         node = node->next;
     }

@@ -40,7 +40,8 @@ Origami parse_data(char *file) {
 
     origami.folds = queue_create();
 
-    Point *points = (Point *)malloc(sizeof(Point) * queue_length(q));
+    Point points[queue_length(q)];
+    //Point *points = (Point *)malloc(sizeof(Point) * queue_length(q));
     int n = 0;
 
     QueueNode *node = q->head;
@@ -68,7 +69,7 @@ Origami parse_data(char *file) {
     origami.fold_x = origami.max_x;
     origami.fold_y = origami.max_y;
 
-    origami.grid = (u8 *)malloc(sizeof(u8) * origami.max_x * origami.max_y);
+    origami.grid = malloc(sizeof(u8) * origami.max_x * origami.max_y);
     memset(origami.grid, 0, origami.max_x * origami.max_y);
 
     for (int i = 0; i < n; ++i) {
@@ -76,7 +77,7 @@ Origami parse_data(char *file) {
         origami.grid[index] = 1;
     }
 
-    free(points);
+    // free(points);
     free(data);
     free(q);
     return origami;

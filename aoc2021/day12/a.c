@@ -78,8 +78,8 @@ CaveMap parse_data(char *file) {
 
     CaveMap map;
     map.count = dict->count;
-    map.caves = (Cave *)malloc(sizeof(Cave) * dict->count);
-    map.connections = (bool *)malloc(sizeof(bool) * map.count * map.count);
+    map.caves = malloc(sizeof(Cave) * dict->count);
+    map.connections = malloc(sizeof(bool) * map.count * map.count);
     memset(map.connections, false, map.count * map.count);
     map.start = -1;
     map.end = -1;
