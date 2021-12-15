@@ -87,3 +87,17 @@ bool paired_brackets(char a, char b) {
     }
     return false;
 }
+
+static u64 next_pow2m1(u64 x) {
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    x |= x >> 32;
+    return x;
+}
+
+u64 next_pow2(u64 x) {
+    return next_pow2m1(x - 1) + 1;
+}

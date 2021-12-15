@@ -84,7 +84,28 @@ void testi(Tester *tester, int a, int b, char *msg) {
         }
     } else {
         tester->fail++;
+        if (!msg) {
+            msg = "";
+        }
         printf("\x1b[0;31m\u274C  Test #%02d  %d != %d %s\x1b[0m\n", count, a, b, msg);
+    }
+}
+
+void testc(Tester *tester, char a, char b, char *msg) {
+    tester->count++;
+    int count = tester->count;
+
+    if (a == b) {
+        tester->success++;
+        if (msg) {
+            printf("\x1b[0;32m\u2705  Test #%02d %c == %c %s\x1b[0m\n", count, a, b, msg);
+        }
+    } else {
+        tester->fail++;
+        if (!msg) {
+            msg = "";
+        }
+        printf("\x1b[0;31m\u274C  Test #%02d  %c != %c %s\x1b[0m\n", count, a, b, msg);
     }
 }
 

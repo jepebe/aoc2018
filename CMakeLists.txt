@@ -25,3 +25,6 @@ add_test(hashing hashing)
 
 add_executable(queuing tests/queuing.c)
 add_test(queuing queuing)
+
+add_executable(heaping tests/heaping.c)
+add_test(heaping heaping)

@@ -1,21 +1,22 @@
 #include "aoc.h"
-#include "utils.h"
 #include "dict.h"
+#include "heap.h"
+#include "utils.h"
 #include <stdint.h>
 
 typedef struct {
-    u8 width;
-    u8 height;
-    u16 count;
-    u8 map[101 * 101];
+    u16 width;
+    u16 height;
+    u8 map[501 * 501];
 } Riskmap;
 
 Riskmap parse_map(char *file) {
-    Riskmap map = {.width = 0, .height = 0, .count = 0};
+    Riskmap map = {.width = 0, .height = 0};
     char *data = read_input(file);
     Queue *lines = read_lines(data);
     QueueNode *line = lines->head;
     bool first_line = true;
+    int count = 0;
     while (line) {
         map.height++;
         char *row = line->value.as.string;
@@ -23,7 +24,7 @@ Riskmap parse_map(char *file) {
             if (first_line) {
                 map.width++;
             }
-            map.map[map.count++] = *row - 48; // 0 in ascii = 48
+            map.map[count++] = *row - 48; // 0 in ascii = 48
             row++;
         }
         first_line = false;
@@ -31,134 +32,158 @@ Riskmap parse_map(char *file) {
     }
     free(data);
     queue_free(lines);
-    // for(int i = 0; i < map.count; ++i) {
-    //     printf("%d ", map.map[i]);
-    // }
     return map;
 }
 
-int indexify(Riskmap *map, u8 x, u8 y) {
+int index_for(Riskmap *map, int x, int y) {
     return y * map->width + x;
 }
 
-u64 lowest_neighbour_risk(Riskmap *map, u64 *riskmap, u8 x, u8 y) {
-    u64 lowest_risk = UINT64_MAX;
-    u64 risk;
-    
-    if(x - 1 >= 0) {
-        risk = riskmap[indexify(map, x - 1, y)];
-        if (risk < lowest_risk) {
-            lowest_risk = risk;
+Riskmap extend_map(Riskmap *map) {
+    Riskmap new_map;
+    new_map.width = map->width * 5;
+    new_map.height = map->height * 5;
+
+    int initial_risk = 0;
+    for (int row = 0; row < 5; ++row) {
+        for (int column = 0; column < 5; ++column) {
+            for (int y = 0; y < map->height; ++y) {
+                for (int x = 0; x < map->width; ++x) {
+                    int idx = index_for(map, x, y);
+                    u8 risk = map->map[idx] + initial_risk + column;
+                    if (risk > 9) {
+                        risk -= 9;
+                    }
+                    int tile_y = row * new_map.width * map->height;
+                    int tile_x = column * map->width;
+                    idx = tile_y + tile_x + y * new_map.width + x;
+                    new_map.map[idx] = risk;
+                }
+            }
         }
+        initial_risk += 1;
     }
 
-    if(x + 1 < map->width) {
-        risk = riskmap[indexify(map, x + 1, y)];
-        if (risk < lowest_risk) {
-            lowest_risk = risk;
-        }
-    }
+    // for (int y = 0; y < new_map.height; ++y) {
+    //     if (y % 10 == 0) {
+    //         printf("\n");
+    //     }
+    //     for (int x = 0; x < new_map.width; ++x) {
+    //         if (x % 10 == 0) {
+    //             printf(" ");
+    //         }
 
-    if(y - 1 >= 0) {
-        risk = riskmap[indexify(map, x, y - 1)];
-        if (risk < lowest_risk) {
-            lowest_risk = risk;
-        }
-    }
+    //         int risk = new_map.map[y * new_map.width + x];
+    //         printf("%d", risk);
+    //     }
+    //     puts("");
+    // }
 
-    if(y + 1 < map->height) {
-        risk = riskmap[indexify(map, x, y + 1)];
-        if (risk < lowest_risk) {
-            lowest_risk = risk;
-        }
-    }
-
-    return lowest_risk;
+    return new_map;
 }
 
-int find_lowest_path_risk(Riskmap *map) {
-    Dict *visited = dict_create();
-    
-    Queue *q = queue_create();
-    queue_append(q, POINT_VAL(0, 0));
 
-    u64 risk[map->height][map->width];
-    for(int y = 0; y < map->height; ++y) {
-        for(int x = 0; x < map->width; ++x) {
-            risk[y][x] = UINT64_MAX;
+typedef struct {
+    Heap *queue;
+    Dict *dist;
+    Dict *visited;
+} Dijkstra;
+
+void add_neighbour(Riskmap *map, Dijkstra *dijkstra, u64 distance, Point p) {
+    Value np = POINT_VAL(p.x, p.y);
+    u8 risk = map->map[index_for(map, p.x, p.y)];
+    if (!dict_contains(dijkstra->visited, &np)) {
+        u64 new_distance = distance + risk;
+        Value old_distance;
+        dict_get(dijkstra->dist, &np, &old_distance);
+        if (old_distance.as.unsigned_64 > new_distance) {
+            dict_set(dijkstra->dist, &np, UNSIGNED_VAL(new_distance));
+            heap_insert(dijkstra->queue, &np, new_distance);
         }
     }
-    //risk[0][0] = 0;
+}
 
-    while (!queue_empty(q)) {
-        Value v = queue_pop_front(q);
-        Point p = v.as.point;
-        u8 local_risk = map->map[indexify(map, p.x, p.y)];
-        
-        if (dict_contains(visited, &v)) {
-            u64 check_risk = lowest_neighbour_risk(map, &risk[0][0], p.x, p.y);
-            if(check_risk + local_risk < risk[p.y][p.x]) {
-                //printf("Shorter path exists!\n");
-                risk[p.y][p.x] = check_risk + local_risk;
-            }
-        } else {
-            u64 risk_to_here = lowest_neighbour_risk(map, &risk[0][0], p.x, p.y);
-            risk[p.y][p.x] = local_risk + risk_to_here;
+int find_lowest_risk_path(Riskmap *map) {
+    Dijkstra dijkstra;
+    dijkstra.queue = heap_create(1000);
+    dijkstra.dist = dict_create();
+    dijkstra.visited = dict_create();
 
-            if (p.x - 1 >= 0) {
-                queue_append(q, POINT_VAL(p.x - 1, p.y));
-            }
-            if (p.y - 1 >= 0) {
-                queue_append(q, POINT_VAL(p.x, p.y - 1));
-            }
-            if (p.x + 1 < map->width) {
-                queue_append(q, POINT_VAL(p.x + 1, p.y));
-            }
-            if (p.y + 1 < map->height) {
-                queue_append(q, POINT_VAL(p.x, p.y + 1));
-            }
-            dict_set(visited, &v, SIGNED_VAL(1));
+    for (int y = 0; y < map->height; ++y) {
+        for (int x = 0; x < map->width; ++x) {
+            Value p = POINT_VAL(x, y);
+            dict_set(dijkstra.dist, &p, UNSIGNED_VAL(UINT64_MAX));
+        }
+    }
+    heap_insert(dijkstra.queue, &POINT_VAL(0, 0), 0);
+
+    dict_set(dijkstra.dist, &POINT_VAL(0, 0), UNSIGNED_VAL(0));
+
+    while (!heap_empty(dijkstra.queue)) {
+        Value key = heap_extract(dijkstra.queue);
+        dict_set(dijkstra.visited, &key, BOOL_VAL(true));
+
+        Point p = key.as.point;
+        Value value;
+        dict_get(dijkstra.dist, &key, &value);
+        u64 distance = value.as.unsigned_64;
+
+        if (p.x - 1 >= 0) {
+            add_neighbour(map, &dijkstra, distance, (Point){p.x - 1, p.y});
+        }
+
+        if (p.x + 1 < map->width) {
+            add_neighbour(map, &dijkstra, distance, (Point){p.x + 1, p.y});
+        }
+
+        if (p.y - 1 >= 0) {
+            add_neighbour(map, &dijkstra, distance, (Point){p.x, p.y - 1});
+        }
+
+        if (p.y + 1 < map->height) {
+            add_neighbour(map, &dijkstra, distance, (Point){p.x, p.y + 1});
         }
     }
 
+    Value distance;
+    dict_get(dijkstra.dist, &POINT_VAL(map->width - 1, map->height - 1), &distance);
 
-    queue_free(q);
-    dict_free(visited);
+    heap_free(dijkstra.queue);
+    dict_free(dijkstra.dist);
+    dict_free(dijkstra.visited);
 
-    for(int y = 0; y < map->height; ++y) {
-        for(int x = 0; x < map->width; ++x) {
-            printf("%3d ", (int) risk[y][x]);
-        }
-        puts("");
-    }
-
-    return risk[map->height - 1][map->width - 1];
+    return distance.as.unsigned_64;
 }
 
 void test_examples(Tester *tester) {
     test_section("Examples Part 1");
     Riskmap map = parse_map("../aoc2021/day15/test");
 
-    u64 risk = find_lowest_path_risk(&map);
+    u64 risk = find_lowest_risk_path(&map);
 
     testi(tester, risk, 40, "");
 
     test_section("Examples Part 2");
 
-    testi(tester, 0, 0, "");
+    Riskmap xmap = extend_map(&map);
+    risk = find_lowest_risk_path(&xmap);
+
+    testi(tester, risk, 315, "");
 }
 
 int main() {
-    Tester tester = create_tester("");
+    Tester tester = create_tester("Chiton");
     test_examples(&tester);
 
     test_section("Solutions");
 
     Riskmap map = parse_map("../aoc2021/day15/input");
-    u64 risk = find_lowest_path_risk(&map);
+    u64 risk = find_lowest_risk_path(&map);
+    testi(&tester, risk, 458, "solution to part 1");
 
-    testi(&tester, risk, 0, "solution to part 1");
-    testi(&tester, 0, 0, "solution to part 2");
+    Riskmap xmap = extend_map(&map);
+    risk = find_lowest_risk_path(&xmap);
+    testi(&tester, risk, 2800, "solution to part 2");
 
     return test_summary(&tester);
 }
