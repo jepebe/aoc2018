@@ -1,9 +1,6 @@
 #include "aoc.h"
 #include "dict.h"
 #include "utils.h"
-#include <math.h>
-#include <stdint.h>
-#include <string.h>
 
 typedef struct {
     char a;
@@ -75,7 +72,7 @@ u64 polymerize(Polymerization *poly, char *template, int iterations) {
 
     for (int i = 0; i < iterations; ++i) {
         Dict *next = dict_create();
-        
+
         Queue *keys = dict_keys(pairs);
         QueueNode *node = keys->head;
         while (node) {
