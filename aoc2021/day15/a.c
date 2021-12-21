@@ -82,24 +82,20 @@ Riskmap extend_map(Riskmap *map) {
     return new_map;
 }
 
-
 typedef struct {
     Heap *queue;
     Dict *dist;
-    Dict *visited;
 } Dijkstra;
 
 void add_neighbour(Riskmap *map, Dijkstra *dijkstra, u64 distance, Point p) {
     Value np = POINT_VAL(p.x, p.y);
     u8 risk = map->map[index_for(map, p.x, p.y)];
-    if (!dict_contains(dijkstra->visited, &np)) {
-        u64 new_distance = distance + risk;
-        Value old_distance;
-        dict_get(dijkstra->dist, &np, &old_distance);
-        if (old_distance.as.unsigned_64 > new_distance) {
-            dict_set(dijkstra->dist, &np, UNSIGNED_VAL(new_distance));
-            heap_insert(dijkstra->queue, &np, new_distance);
-        }
+    u64 new_distance = distance + risk;
+    Value old_distance;
+    dict_get(dijkstra->dist, &np, &old_distance);
+    if (old_distance.as.unsigned_64 > new_distance) {
+        dict_set(dijkstra->dist, &np, UNSIGNED_VAL(new_distance));
+        heap_insert(dijkstra->queue, &np, new_distance);
     }
 }
 
@@ -107,7 +103,6 @@ int find_lowest_risk_path(Riskmap *map) {
     Dijkstra dijkstra;
     dijkstra.queue = heap_create(1000);
     dijkstra.dist = dict_create();
-    dijkstra.visited = dict_create();
 
     for (int y = 0; y < map->height; ++y) {
         for (int x = 0; x < map->width; ++x) {
@@ -121,7 +116,6 @@ int find_lowest_risk_path(Riskmap *map) {
 
     while (!heap_empty(dijkstra.queue)) {
         Value key = heap_extract(dijkstra.queue);
-        dict_set(dijkstra.visited, &key, BOOL_VAL(true));
 
         Point p = key.as.point;
         Value value;
@@ -150,7 +144,6 @@ int find_lowest_risk_path(Riskmap *map) {
 
     heap_free(dijkstra.queue);
     dict_free(dijkstra.dist);
-    dict_free(dijkstra.visited);
 
     return distance.as.unsigned_64;
 }
