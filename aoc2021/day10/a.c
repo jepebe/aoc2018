@@ -143,7 +143,7 @@ u64 score_autocomplete(Queue *lines) {
     array.count = 0;
     array.data = (u64 *)malloc(sizeof(u64) * queue_length(lines));
 
-    queue_visit(lines, scoring, &array);
+    queue_map(lines, scoring, &array);
 
     qsort(array.data, array.count, sizeof(u64), compare_function);
 

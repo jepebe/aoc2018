@@ -6,6 +6,7 @@ typedef struct {
 } Range;
 
 typedef struct {
+    u16 id;
     Range x;
     Range y;
     Range z;
@@ -98,6 +99,83 @@ Cuboid intersection(Cuboid *a, Cuboid *b) {
     return c;
 }
 
+typedef struct {
+    Cuboid cuboids[6];
+    int count;
+} CuboidSplit;
+
+CuboidSplit* split_cuboid(Cuboid *a, Cuboid *b) {
+    CuboidSplit *split = malloc(sizeof(CuboidSplit));
+
+    if (b->x.from > a->x.from) {
+        Cuboid *c = &split->cuboids[split->count++];
+        c->x.from = a->x.from;
+        c->x.to = b->x.from - 1;
+        c->y.from = a->y.from;
+        c->y.to = a->y.to;
+        c->z.from = a->z.from;
+        c->z.to = a->z.to;
+        size_cuboid(c);
+    }
+
+    if (b->x.to < a->x.to) {
+        Cuboid *c = &split->cuboids[split->count++];
+        c->x.from = b->x.to + 1;
+        c->x.to = a->x.to;
+        c->y.from = a->y.from;
+        c->y.to = a->y.to;
+        c->z.from = a->z.from;
+        c->z.to = a->z.to;
+        size_cuboid(c);
+    }
+
+    if (b->y.from > a->y.from) {
+        Cuboid *c = &split->cuboids[split->count++];
+        c->x.from = b->x.from < a->x.from ? a->x.from : b->x.from;
+        c->x.to = b->x.to > a->x.to ? a->x.to : b->x.to;
+        c->y.from = a->y.from;
+        c->y.to = b->y.from - 1;
+        c->z.from = a->z.from;
+        c->z.to = a->z.to;
+        size_cuboid(c);
+    }
+
+    if (b->y.to < a->y.to) {
+        Cuboid *c = &split->cuboids[split->count++];
+        c->x.from = b->x.from < a->x.from ? a->x.from : b->x.from;
+        c->x.to = b->x.to > a->x.to ? a->x.to : b->x.to;
+        c->y.from = b->y.to + 1;
+        c->y.to = a->y.to;
+        c->z.from = a->z.from;
+        c->z.to = a->z.to;
+        size_cuboid(c);
+    }
+
+    if (b->z.from > a->z.from) {
+        Cuboid *c = &split->cuboids[split->count++];
+        c->x.from = b->x.from < a->x.from ? a->x.from : b->x.from;
+        c->x.to = b->x.to > a->x.to ? a->x.to : b->x.to;
+        c->y.from = b->y.from < a->y.from ? a->y.from : b->y.from;
+        c->y.to = b->y.to > a->y.to ? a->y.to : b->y.to;
+        c->z.from = a->z.from;
+        c->z.to = b->z.from - 1;
+        size_cuboid(c);
+    }
+
+    if (b->z.to < a->z.to) {
+        Cuboid *c = &split->cuboids[split->count++];
+        c->x.from = b->x.from < a->x.from ? a->x.from : b->x.from;
+        c->x.to = b->x.to > a->x.to ? a->x.to : b->x.to;
+        c->y.from = b->y.from < a->y.from ? a->y.from : b->y.from;
+        c->y.to = b->y.to > a->y.to ? a->y.to : b->y.to;
+        c->z.from = b->z.to + 1;
+        c->z.to = a->z.to;
+        size_cuboid(c);
+    }
+
+    return split;
+}
+
 void test_cuboids(Tester *tester) {
     test_section("Cuboids");
     Cuboid a = create_cuboid(0, 0, 0, 5, 5, 5);
@@ -155,4 +233,15 @@ void test_cuboids(Tester *tester) {
     testi(tester, c.y.to, 4, NULL);
     testi(tester, c.z.to, 4, NULL);
     testi(tester, c.size, 2 * 2 * 2, NULL);
+
+    a = create_cuboid(0, 0, 0, 5, 5, 5);
+    b = create_cuboid(4, 4, 4, 6, 6, 6);
+    CuboidSplit *split = split_cuboid(&a, &b);
+    testi(tester, split->count, 3, "");
+    int size = split->cuboids[0].size + split->cuboids[1].size + split->cuboids[2].size;
+    testi(tester, size, a.size - (2 * 2 * 2), "");
+
+    b = create_cuboid(2, 2, 2, 3, 3, 3);
+    split = split_cuboid(&a, &b);
+    testi(tester, split->count, 6, "");
 }

@@ -148,7 +148,7 @@ void queue_free(Queue *queue) {
     free(queue);
 }
 
-void queue_visit(Queue *queue, QueueVisitorFunc vf, void *ctx) {
+void queue_map(Queue *queue, QueueVisitorFunc vf, void *ctx) {
     QueueNode *node = queue->head;
     while (node) {
         vf(&node->value, ctx);
@@ -162,7 +162,7 @@ static void signed_sum(Value *value, void *sum_ptr) {
 
 s64 queue_sum_signed(Queue *queue) {
     s64 sum = 0;
-    queue_visit(queue, signed_sum, &sum);
+    queue_map(queue, signed_sum, &sum);
     return sum;
 }
 
