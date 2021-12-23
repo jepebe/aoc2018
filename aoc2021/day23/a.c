@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 typedef struct {
+    u8 id;
     u8 x;
     u8 y;
     char type;
@@ -22,11 +23,8 @@ void print_diagram(Diagram *diagram) {
     for (int y = 0; y < 7; ++y) {
         for (int x = 0; x < 13; ++x) {
             char pos = diagram->map[y][x];
-            for (int i = 0; i < diagram->pods_count; ++i) {
-                Amphipod *pod = &diagram->pods[i];
-                if (pod->x == x && pod->y == y) {
-                    pos = pod->type;
-                }
+            if (pos >= 0 && pos < diagram->pods_count) {
+                pos = diagram->pods[(u8)pos].type;
             }
             printf("%c", pos);
         }
@@ -84,6 +82,7 @@ Diagram setup_diagram(bool extended) {
 
 void add_amphipod(Diagram *d, char type, u8 x, u8 y) {
     Amphipod *pod = &d->pods[d->pods_count++];
+    pod->id = d->pods_count - 1;
     pod->type = type;
     pod->x = x;
     pod->y = y;
@@ -103,6 +102,7 @@ void add_amphipod(Diagram *d, char type, u8 x, u8 y) {
         break;
     }
     pod->steps = 0;
+    d->map[y][x] = d->pods_count - 1;
 }
 
 Diagram setup_test(bool extended) {
@@ -225,11 +225,9 @@ Diagram setup_input(bool extended) {
 }
 
 Amphipod *pod_at(Diagram *d, u8 x, u8 y) {
-    for (int i = 0; i < d->pods_count; ++i) {
-        Amphipod *pod = &d->pods[i];
-        if (pod->x == x && pod->y == y) {
-            return pod;
-        }
+    u8 pod_index = d->map[y][x];
+    if (pod_index >= 0 && pod_index < d->pods_count) {
+        return &d->pods[pod_index];
     }
     return NULL;
 }
@@ -247,7 +245,7 @@ bool is_route_free(Diagram *d, Amphipod *pod, u8 x, u8 y) {
         }
     }
 
-    // down the rom
+    // down the sideroom
     to = pod->y < y ? y : pod->y;
     u8 room_x = y == 1 ? pod->x : x;
     for (int i = 2; i <= to; ++i) {
@@ -294,6 +292,7 @@ Moves valid_moves(Diagram *d, Amphipod *pod) {
 
     if (pod->y == 1) {
         // can only move into a room -> 3, 5, 7, 9
+        // check availability from innermost position first
         if (!room_has_strangers(d, pod->type)) {
             for (int i = d->room_depth; i > 1; --i) {
                 if (is_route_free(d, pod, dst_room, i)) {
@@ -382,6 +381,14 @@ u64 hash_pods(Diagram *d) {
     return hash;
 }
 
+void move_amphipod(Diagram *d, Amphipod *pod, u8 x, u8 y, s8 steps) {
+    d->map[pod->y][pod->x] = '.';
+    pod->x = x;
+    pod->y = y;
+    pod->steps += steps;
+    d->map[pod->y][pod->x] = pod->id;
+}
+
 typedef struct {
     u8 depth;
     u8 max_depth;
@@ -395,7 +402,7 @@ u64 solver(Diagram *d, RecurseMonitor *mon) {
     }
 
     Value key = UNSIGNED_VAL(hash_pods(d));
-    if(dict_contains(mon->memo, &key)) {
+    if (dict_contains(mon->memo, &key)) {
         Value val;
         dict_get(mon->memo, &key, &val);
         return val.as.unsigned_64;
@@ -424,18 +431,14 @@ u64 solver(Diagram *d, RecurseMonitor *mon) {
                 u8 ox = pod->x;
                 u8 oy = pod->y;
 
-                pod->x = moves.x[j];
-                pod->y = moves.y[j];
-                pod->steps += moves.steps[j];
+                move_amphipod(d, pod, moves.x[j], moves.y[j], moves.steps[j]);
 
-                u64 e = solver(d, mon);
-                if (e < energy) {
-                    energy = e;
+                u64 nrg = solver(d, mon);
+                if (nrg < energy) {
+                    energy = nrg;
                 }
 
-                pod->x = ox;
-                pod->y = oy;
-                pod->steps -= moves.steps[j];
+                move_amphipod(d, pod, ox, oy, -moves.steps[j]);
             }
         }
         dict_set(mon->memo, &key, UNSIGNED_VAL(energy));
