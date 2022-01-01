@@ -1,11 +1,23 @@
-#include "aoc.h"
 #include "alu.h"
+#include "aoc.h"
 #include "dict.h"
 #include "utils.h"
 #include <stdint.h>
 #include <stdlib.h>
 
 #define DEBUG 0
+
+void reset_alu(ALU *alu) {
+    for (int i = 0; i < 14; ++i) {
+        alu->input[i] = 0;
+    }
+    alu->input_index = 0;
+    alu->pc = 0;
+    alu->w = 0;
+    alu->x = 0;
+    alu->y = 0;
+    alu->z = 0;
+}
 
 bool set_input(ALU *alu, u64 n) {
     bool valid = true;
@@ -48,11 +60,12 @@ u64 recurse(ALU *alu, Dict *memo, int depth, bool find_max) {
 
         Value key = UNSIGNED_VAL((alu->z << 8) | (depth & 0xF));
         if (!dict_contains(memo, &key)) {
-            dict_set(memo, &key, NIL_VAL);
             u64 result = recurse(alu, memo, depth + 1, find_max);
             if (result > 0) {
+                printf("z=%llu ", z);
                 return result;
             }
+            dict_set(memo, &key, NIL_VAL);
         }
 
         alu->pc = pc;
@@ -64,20 +77,6 @@ u64 recurse(ALU *alu, Dict *memo, int depth, bool find_max) {
     }
     alu->input[depth] = 0;
     return 0;
-}
-
-u64 find_max_monad(ALU *alu) {
-    Dict *memo = dict_create();
-    u64 result = recurse(alu, memo, 0, true);
-    dict_free(memo);
-    return result;
-}
-
-u64 find_min_monad(ALU *alu) {
-    Dict *memo = dict_create();
-    u64 result = recurse(alu, memo, 0, false);
-    dict_free(memo);
-    return result;
 }
 
 void test_examples(Tester *tester) {
@@ -116,12 +115,15 @@ int main() {
     test_section("Solutions");
 
     ALU *alu = create_alu("../aoc2021/day24/input");
-    u64 result = find_max_monad(alu);
+    Dict *memo = dict_create();
+    u64 result = recurse(alu, memo, 0, true);
     test_u64(&tester, result, 99995969919326, "solution to part 1");
 
-    ALU *alu2 = create_alu("../aoc2021/day24/input");
-    u64 result2 = find_min_monad(alu2);
-    test_u64(&tester, result2, 48111514719111, "solution to part 2");
+    reset_alu(alu);
+    result = recurse(alu, memo, 0, false);
+    test_u64(&tester, result, 48111514719111, "solution to part 2");
+    
+    dict_free(memo);
 
     return test_summary(&tester);
 }

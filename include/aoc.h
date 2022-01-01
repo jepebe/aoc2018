@@ -205,3 +205,7 @@ char *read_input(const char *path) {
 
     return dst;
 }
+
+u64 min_u64(u64 a, u64 b) {
+    return a <= b ? a : b;
+}

@@ -273,9 +273,9 @@ bool room_has_strangers(Diagram *d, char type) {
 }
 
 typedef struct {
-    u8 x[10];
-    u8 y[10];
-    u8 steps[10];
+    u8 x[7];
+    u8 y[7];
+    u8 steps[7];
     int count;
 } Moves;
 
@@ -391,6 +391,7 @@ void move_amphipod(Diagram *d, Amphipod *pod, u8 x, u8 y, s8 steps) {
 
 typedef struct {
     u8 depth;
+    u8 solution_depth;
     u8 max_depth;
     u32 min_score;
     Dict *memo;
@@ -400,6 +401,8 @@ u64 solver(Diagram *d, RecurseMonitor *mon) {
     if (calculate_energy(d) >= mon->min_score) {
         return UINT64_MAX;
     }
+
+    
 
     Value key = UNSIGNED_VAL(hash_pods(d));
     if (dict_contains(mon->memo, &key)) {
@@ -414,11 +417,12 @@ u64 solver(Diagram *d, RecurseMonitor *mon) {
         energy = calculate_energy(d);
         if (mon->min_score > energy) {
             mon->min_score = energy;
+            mon->solution_depth = mon->depth;
             //printf("Energy=%llu\n", energy);
         }
         if (mon->max_depth < mon->depth) {
             mon->max_depth = mon->depth;
-            //printf("Level=%d\n", mon->depth);
+            // printf("Level=%d\n", mon->depth);
         }
 
     } else {
@@ -453,7 +457,11 @@ u64 solve(Diagram *d) {
     mon.max_depth = 0;
     mon.min_score = UINT32_MAX;
     mon.memo = dict_create();
-    return solver(d, &mon);
+    u64 result = solver(d, &mon);
+    printf("number of turns = %d\n", mon.solution_depth);
+    printf("memoized items = %d\n", mon.memo->count);
+    dict_free(mon.memo);
+    return result;
 }
 
 void test_examples(Tester *tester) {
