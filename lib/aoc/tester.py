@@ -35,7 +35,7 @@ class Tester(object):
         atexit.register(self.summary)
         self.now = time.time()
 
-    def test(self, test_state, message, success_message=''):
+    def test(self, test_state, message='', success_message=''):
         self._count += 1
         if test_state:
             self._success += 1
