@@ -24,7 +24,6 @@ def iterate(discs):
     for index, (s, p) in enumerate(discs):
         p = (p + 1) % s
         discs[index] = (s, p)
-        # result.append((s, p))
     return discs
 
 
