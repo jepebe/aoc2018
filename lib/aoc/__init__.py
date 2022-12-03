@@ -2,6 +2,14 @@ from functools import reduce
 from math import gcd
 from .tester import red, green, Tester, color, blue
 from .bfs import bfs, bfsf
+from itertools import zip_longest
+
+
+def grouper(n, iterable, fillvalue=None):
+    # Groups together items in an iterable
+    # Example: grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx
+    args = [iter(iterable)] * n
+    return zip_longest(fillvalue=fillvalue, *args)
 
 
 def find_extents(grid):
