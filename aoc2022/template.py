@@ -2,8 +2,9 @@ import aoc
 
 tester = aoc.Tester("")
 
-with open("input") as f:
-    data = f.read()
+tester.test_section("Tests")
+
+data = aoc.read_input()
 
 tester.test_section("Part 1")
 tester.test_value(1, 71502, "solution to part 1=%s")
