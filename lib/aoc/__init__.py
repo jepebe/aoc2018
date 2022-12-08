@@ -5,6 +5,8 @@ from .tester import red, green, Tester, color, blue
 from .bfs import bfs, bfsf
 from itertools import zip_longest
 
+Extents = tuple[int, int, int, int]
+
 
 def grouper(n, iterable, fill_value=None) -> typing.Iterator:
     # Groups together items in an iterable
@@ -19,7 +21,7 @@ def read_input() -> str:
     return data
 
 
-def find_extents(grid) -> typing.Tuple[int, int, int, int]:
+def find_extents(grid) -> Extents:
     minx = min(x[0] for x in grid)
     miny = min(x[1] for x in grid)
     maxx = max(x[0] for x in grid)
