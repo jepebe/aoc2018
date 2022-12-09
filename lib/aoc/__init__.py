@@ -111,3 +111,11 @@ def add_tuple(p1, p2):
 
 def scale_tuple(p, s):
     return p[0] * s, p[1] * s
+
+
+def diff_tuple(t1, t2):
+    return t1[0] - t2[0], t1[1] - t2[1]
+
+
+def abs_tuple(t):
+    return abs(t[0]), abs(t[1])
