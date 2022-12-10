@@ -25,7 +25,7 @@ def draw_sprite(cpu: dict):
     if cpu["x"] - 1 <= cpu["crt_x"] <= cpu["x"] + 1:
         pixel = "#"
     else:
-        pixel = "."
+        pixel = " "
 
     cpu["crt"][(cpu["crt_x"], cpu["crt_y"])] = pixel
     cpu["crt_x"] += 1
@@ -61,7 +61,7 @@ def run_program(program_listing: list[tuple[str, int]]) -> tuple[int, str]:
                 cpu["x"] += operand
 
     # aoc.print_map(cpu["crt"])
-    return cpu["signal_accumulator"], aoc.ocr.ocr(cpu["crt"], {".": " ", "#": "#"})
+    return cpu["signal_accumulator"], aoc.ocr.ocr(cpu["crt"])
 
 
 tester.test_section("Tests")

@@ -2,7 +2,10 @@ from aoc import Tester, find_extents
 from aoc.glyphs import glyph_data
 
 
-def ocr(grid, look_up, missing=' '):
+def ocr(grid, look_up=None, missing=' '):
+    if not look_up:
+        look_up = {" ": " ", "#": "#"}
+
     minx, maxx, miny, maxy = find_extents(grid)
     characters = []
     for j in range(miny, maxy):
@@ -53,6 +56,6 @@ if __name__ == '__main__':
 
     tester = Tester('ocr')
 
-    result = ocr(data, {0: ' ', 1: '#'})
+    result = ocr(data, {0: " ", 1: "#"})
     tester.test_value(result, 'UERPRFGJ')
     tester.summary()
