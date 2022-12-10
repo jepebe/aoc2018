@@ -107,7 +107,7 @@ with open("input") as f:
 plays = parse_plays(data)
 
 tester.test_section("Part 1")
-tester.test_value(score_game_a(plays), 11841, 'solution to part 1=%s')
+tester.test_value(score_game_a(plays), 11841, "solution to part 1=%s")
 
 tester.test_section("Part 2")
-tester.test_value(score_game_b(plays), 13022, 'solution to part 2=%s')
+tester.test_value(score_game_b(plays), 13022, "solution to part 2=%s")

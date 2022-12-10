@@ -15,7 +15,7 @@ test_streams = [
 
 def find_start_of_packet(stream: str, packet_size: int) -> int:
     for i in range(len(stream) - (packet_size - 1)):
-        seq = (stream[i:i + packet_size])
+        seq = stream[i : i + packet_size]
         if len(set(seq)) == packet_size:
             return i + packet_size
     return 0
