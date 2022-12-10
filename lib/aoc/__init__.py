@@ -15,8 +15,8 @@ def grouper(n, iterable, fill_value=None) -> typing.Iterator:
     return zip_longest(fillvalue=fill_value, *args)
 
 
-def read_input() -> str:
-    with open("input") as f:
+def read_input(filename: str = "input") -> str:
+    with open(filename) as f:
         data = f.read()
     return data
 
