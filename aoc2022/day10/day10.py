@@ -7,11 +7,14 @@ tester = aoc.Tester("Cathode-Ray Tube")
 def parse_program(data: str):
     program_listing = []
     for line in data.splitlines():
-        if line.startswith("noop"):
-            program_listing.append((line, 0))
-        else:
-            instruction, operand = line.split(" ")
-            program_listing.append((instruction, int(operand)))
+        match line.split(sep=" "):
+            case (instruction,):
+                program_listing.append((instruction, 0))
+            case (instruction, operand):
+                program_listing.append((instruction, int(operand)))
+            case _:
+                raise UserWarning(f"Unknown instruction '{line}'")
+
     return program_listing
 
 
