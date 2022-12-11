@@ -98,10 +98,12 @@ def print_map(grid, look_up=None, missing=None, func=None):
 
 
 def lcm(a, b):
+    """Least Common Multiple for two numbers"""
     return a * b // gcd(a, b)
 
 
 def lcms(*numbers):
+    """LCM for multiple numbers"""
     return reduce(lcm, numbers)
 
 
