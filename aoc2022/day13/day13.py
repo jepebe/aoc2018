@@ -65,7 +65,7 @@ def run_tests(t: aoc.Tester):
     t.test_value(compare(a, b), 0)
 
     t.test_value(calculate_pair_sum("test_input"), 13)
-    t.test_value(sort_messages("test_input"), 140)
+    t.test_value(find_decoder_key("test_input"), 140)
 
 
 def parse_line(line: str):
@@ -102,8 +102,7 @@ def yield_pairs(filename: str):
         yield parse_line(a), parse_line(b)
 
 
-def compare(left, right, prefix="") -> int:
-    prefix += "  "
+def compare(left, right) -> int:
     for index in range(max(len(left), len(right))):
         if index >= len(left):
             return 1
@@ -112,13 +111,16 @@ def compare(left, right, prefix="") -> int:
 
         match left[index], right[index]:
             case list(l), list(r):
-                if (cmp := compare(l, r, prefix)) != 0:
+                cmp = compare(l, r)
+                if cmp != 0:
                     return cmp
             case list(l), int(r):
-                if (cmp := compare(l, [r], prefix)) != 0:
+                cmp = compare(l, [r])
+                if cmp != 0:
                     return cmp
             case int(l), list(r):
-                if (cmp := compare([l], r, prefix)) != 0:
+                cmp = compare([l], r)
+                if cmp != 0:
                     return cmp
             case int(l), int(r):
                 if l < r:
@@ -136,9 +138,10 @@ def calculate_pair_sum(filename):
     return pair_sum
 
 
-def sort_messages(filename):
+def find_decoder_key(filename):
     data = aoc.read_input(filename)
     messages = [parse_line(msg) for msg in data.splitlines() if msg.strip()]
+    # insert divider packets
     messages.append([[2]])
     messages.append([[6]])
 
@@ -152,4 +155,4 @@ tester.test_section("Part 1")
 tester.test_value(calculate_pair_sum("input"), 6086, "solution to part 1=%s")
 
 tester.test_section("Part 2")
-tester.test_value(sort_messages("input"), 208191, "solution to part 2=%s")
+tester.test_value(find_decoder_key("input"), 27930, "solution to part 2=%s")
