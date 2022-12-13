@@ -2,7 +2,12 @@ import aoc
 
 tester = aoc.Tester("")
 
-tester.test_section("Tests")
+
+def run_tests(t: aoc.Tester):
+    t.test_section("Tests")
+
+
+run_tests(tester)
 
 data = aoc.read_input()
 
