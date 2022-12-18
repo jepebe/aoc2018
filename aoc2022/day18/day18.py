@@ -1,6 +1,7 @@
-import typing
-
 import aoc
+from aoc import Tuple3, cube_extents  # Using Tuple3 added 10 ms running time :(
+
+DIRECTIONS_3D = [(0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0)]
 
 tester = aoc.Tester("Boiling Boulders")
 
@@ -18,54 +19,53 @@ test_data = """2,2,2
 2,1,5
 2,3,5"""
 
-Tuple3: typing.TypeAlias = tuple[int, int, int]
-
 
 def parse_input(data: str) -> set[Tuple3]:
     cubes = set()
     for line in data.splitlines():
         x, y, z = tuple(map(int, line.split(sep=",")))
-        cubes.add((x, y, z))
+        cubes.add(Tuple3(x, y, z))
     return cubes
 
 
-def count_exposed_sides(cubes: set[Tuple3], pockets: set[Tuple3] = None) -> tuple[int, set[Tuple3]]:
-    if pockets is None:
-        pockets = set()
+def count_exposed_sides(cubes: set[Tuple3], exclude: set[Tuple3] = None) -> tuple[int, set[Tuple3]]:
+    if exclude is None:
+        exclude = set()
 
     exposed_neighbors = set()
     exposed_count = 0
     for cube in cubes:
-        for d in [(0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0)]:
-            neighbor = aoc.add_tuple3(cube, d)
-            if neighbor not in cubes and neighbor not in pockets:
+        for d in DIRECTIONS_3D:
+            neighbor = cube + d
+            if neighbor not in cubes and neighbor not in exclude:
                 exposed_neighbors.add(neighbor)
                 exposed_count += 1
     return exposed_count, exposed_neighbors
 
 
 def find_pockets(cubes: set[Tuple3]) -> set[Tuple3]:
-    min_x = min(c[0] for c in cubes) - 1
-    max_x = max(c[0] for c in cubes) + 1
-    min_y = min(c[1] for c in cubes) - 1
-    max_y = max(c[1] for c in cubes) + 1
-    min_z = min(c[2] for c in cubes) - 1
-    max_z = max(c[2] for c in cubes) + 1
-    start = (min_x, min_y, min_z)
+    cube_min, cube_max = cube_extents(cubes)
 
+    # add open space around everything
+    cube_min -= (1, 1, 1)
+    cube_max += (1, 1, 1)
+
+    start = cube_min
     distance_map = {start: 0}
     queue = [start]
 
+    # BFS empty space on the outside
     while len(queue) > 0:
         v = queue.pop(0)
 
-        for direction in [(0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0)]:
-            w = aoc.add_tuple3(v, direction)
-            if min_x <= w[0] <= max_x and min_y <= w[1] <= max_y and min_z <= w[2] <= max_z:
+        for direction in DIRECTIONS_3D:
+            w = v + direction
+            if cube_min <= w <= cube_max:
                 if w not in cubes and w not in distance_map:
                     distance_map[w] = distance_map[v] + 1
                     queue.append(w)
 
+    # find cubes that was not touched by the BFS
     _, exposed_neighbors = count_exposed_sides(cubes)
     pocket_cubes = set()
     for cube in exposed_neighbors:

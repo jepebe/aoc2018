@@ -4,6 +4,7 @@ from math import gcd
 from .tester import red, green, Tester, color, blue
 from .bfs import bfs, bfsf
 from .floyd_warshall import Distances, print_floyd_warshall, floyd_warshall
+from .tuple3 import Tuple3, cube_extents
 from itertools import zip_longest
 
 Extents = tuple[int, int, int, int]
