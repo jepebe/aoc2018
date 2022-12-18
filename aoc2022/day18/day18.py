@@ -21,15 +21,15 @@ test_data = """2,2,2
 Tuple3: typing.TypeAlias = tuple[int, int, int]
 
 
-def parse_input(data: str) -> list[Tuple3]:
-    cubes = []
+def parse_input(data: str) -> set[Tuple3]:
+    cubes = set()
     for line in data.splitlines():
         x, y, z = tuple(map(int, line.split(sep=",")))
-        cubes.append((x, y, z))
+        cubes.add((x, y, z))
     return cubes
 
 
-def count_exposed_sides(cubes: list[Tuple3], pockets: set[Tuple3] = None) -> tuple[int, set[Tuple3]]:
+def count_exposed_sides(cubes: set[Tuple3], pockets: set[Tuple3] = None) -> tuple[int, set[Tuple3]]:
     if pockets is None:
         pockets = set()
 
@@ -44,9 +44,7 @@ def count_exposed_sides(cubes: list[Tuple3], pockets: set[Tuple3] = None) -> tup
     return exposed_count, exposed_neighbors
 
 
-def find_pockets(cubes: list[Tuple3]) -> set[Tuple3]:
-    cubes = set(cubes)
-
+def find_pockets(cubes: set[Tuple3]) -> set[Tuple3]:
     min_x = min(c[0] for c in cubes) - 1
     max_x = max(c[0] for c in cubes) + 1
     min_y = min(c[1] for c in cubes) - 1
@@ -68,7 +66,7 @@ def find_pockets(cubes: list[Tuple3]) -> set[Tuple3]:
                     distance_map[w] = distance_map[v] + 1
                     queue.append(w)
 
-    _, exposed_neighbors = count_exposed_sides(list(cubes))
+    _, exposed_neighbors = count_exposed_sides(cubes)
     pocket_cubes = set()
     for cube in exposed_neighbors:
         if cube not in distance_map:
@@ -77,7 +75,7 @@ def find_pockets(cubes: list[Tuple3]) -> set[Tuple3]:
     return pocket_cubes
 
 
-def count_exposed_sides_not_in_pocket(cubes: list[Tuple3]) -> int:
+def count_exposed_sides_not_in_pocket(cubes: set[Tuple3]) -> int:
     pocket_cubes = find_pockets(cubes)
     exposed_count, _ = count_exposed_sides(cubes, pocket_cubes)
     return exposed_count
