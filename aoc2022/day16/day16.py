@@ -72,27 +72,31 @@ class Tunnels:
 
         return max_pressure
 
-    def open_elephant_valve(self, valve: str, pressure: int, depth: int, open_valves: set, elephant: bool):
-        if pressure >= self.max_pressure:
+    def open_elephant_valve(self, valve: str, pressure: int, time_left: int, open_valves: set, elephant: bool):
+        if pressure > self.max_pressure:
             self.max_pressure = pressure
 
-        if depth <= 2:
-            # I believe this works because if the valve has not been opened by now it will not
-            # contribute anything on the next depth? Or not. Maybe just luck...
+        if time_left <= 0:
+            return
+
+        if elephant and time_left < 16 and self.max_pressure - pressure > 150:
+            # maybe a _safe_ pressure diff can be calculated based on remaining valves?
+            # maybe too aggressive, but it works...
             return
 
         if valve in self.valves_with_flow and valve not in open_valves:
             new_open_valves = open_valves.union({valve})
-            p = self.valves[valve]["rate"] * depth
+            p = self.valves[valve]["rate"] * time_left
 
-            self.open_elephant_valve(valve, pressure + p, depth - 1, new_open_valves, elephant)
+            self.open_elephant_valve(valve, pressure + p, time_left - 1, new_open_valves, elephant)
             if not elephant:
                 self.open_elephant_valve("AA", pressure + p, 25, new_open_valves, True)
 
         else:
             for next_valve in [v for v in self.valves_with_flow if v not in open_valves]:
                 dist = self.dist[(valve, next_valve)]
-                self.open_elephant_valve(next_valve, pressure, depth - dist, open_valves, elephant)
+                if time_left - dist > 0:  # no need to visit a valve after the time limit or at time_left=0
+                    self.open_elephant_valve(next_valve, pressure, time_left - dist, open_valves, elephant)
 
 
 def find_maximum_rate(filename: str) -> int:
@@ -106,7 +110,7 @@ def find_elephant_maximum_rate(filename: str) -> int:
     valves = parse_input(filename)
     distances = aoc.floyd_warshall(valves)
     t = Tunnels(valves, distances)
-    t.open_elephant_valve("AA", pressure=0, depth=25, open_valves=set(), elephant=False)
+    t.open_elephant_valve("AA", pressure=0, time_left=25, open_valves=frozenset(), elephant=False)
     return t.max_pressure
 
 
