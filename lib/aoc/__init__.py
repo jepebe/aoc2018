@@ -3,6 +3,7 @@ from functools import reduce
 from math import gcd
 from .tester import red, green, Tester, color, blue
 from .bfs import bfs, bfsf
+from .floyd_warshall import Distances, print_floyd_warshall, floyd_warshall
 from itertools import zip_longest
 
 Extents = tuple[int, int, int, int]
@@ -109,6 +110,10 @@ def lcms(*numbers):
 
 def add_tuple(p1, p2):
     return p1[0] + p2[0], p1[1] + p2[1]
+
+
+def add_tuple3(p1, p2):
+    return p1[0] + p2[0], p1[1] + p2[1], p1[2] + p2[2]
 
 
 def scale_tuple(p, s):
