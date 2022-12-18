@@ -110,7 +110,7 @@ def find_elephant_maximum_rate(filename: str) -> int:
     valves = parse_input(filename)
     distances = aoc.floyd_warshall(valves)
     t = Tunnels(valves, distances)
-    t.open_elephant_valve("AA", pressure=0, time_left=25, open_valves=frozenset(), elephant=False)
+    t.open_elephant_valve("AA", pressure=0, time_left=25, open_valves=set(), elephant=False)
     return t.max_pressure
 
 
