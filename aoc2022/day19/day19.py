@@ -48,7 +48,11 @@ def parse_input(filename: str):
 
 
 def can_afford(resources: Resources, cost: MineralCost):
-    return cost.ore <= resources.ores and cost.clay <= resources.clays and cost.obsidian <= resources.obsidians
+    return (
+        cost.ore <= resources.ores
+        and cost.clay <= resources.clays
+        and cost.obsidian <= resources.obsidians
+    )
 
 
 def make_robot(resources: Resources, cost: MineralCost):
@@ -85,18 +89,31 @@ class BlueprintQualityChecker:
         geode_robot = blueprint.geode_robot
         self.max_ore = max(ore_robot.ore, clay_robot.ore, obsidian_robot.ore, geode_robot.ore)
         self.max_clay = max(ore_robot.clay, clay_robot.clay, obsidian_robot.clay, geode_robot.clay)
-        self.max_obsidian = max(ore_robot.obsidian, clay_robot.obsidian, obsidian_robot.obsidian, geode_robot.obsidian)
+        self.max_obsidian = max(
+            ore_robot.obsidian,
+            clay_robot.obsidian,
+            obsidian_robot.obsidian,
+            geode_robot.obsidian,
+        )
 
         self.max_geodes = 0
         self.memo = set()
 
     def upper_bound_geodes(self, resources: Resources, t: int) -> int:
         time_left = self.runtime - t
-        return resources.geodes + resources.geode_robots * time_left + ((time_left - 1) * time_left // 2)
+        return (
+            resources.geodes
+            + resources.geode_robots * time_left
+            + ((time_left - 1) * time_left // 2)
+        )
 
     def upper_bound_obsidian(self, resources: Resources, t: int) -> int:
         time_left = self.runtime - t
-        return resources.obsidians + resources.obsidian_robots * time_left + ((time_left - 1) * time_left // 2)
+        return (
+            resources.obsidians
+            + resources.obsidian_robots * time_left
+            + ((time_left - 1) * time_left // 2)
+        )
 
     @functools.lru_cache
     def check_blueprint_quality(self, res: Resources, t: int = 0):
@@ -116,8 +133,16 @@ class BlueprintQualityChecker:
             return 0
 
         state = (
-        t, res.ore_robots, res.clay_robots, res.obsidian_robots, res.geode_robots, res.ores, res.clays, res.obsidians,
-        res.geodes)
+            t,
+            res.ore_robots,
+            res.clay_robots,
+            res.obsidian_robots,
+            res.geode_robots,
+            res.ores,
+            res.clays,
+            res.obsidians,
+            res.geodes,
+        )
         if state not in self.memo:
             self.memo.add(state)
         else:
