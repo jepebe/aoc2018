@@ -1,5 +1,4 @@
 import dataclasses
-import functools
 
 import aoc
 
@@ -22,7 +21,7 @@ class Blueprint:
     geode_robot: MineralCost
 
 
-@dataclasses.dataclass(eq=True, unsafe_hash=True)
+@dataclasses.dataclass
 class Resources:
     ores: int = 0
     clays: int = 0
@@ -115,13 +114,10 @@ class BlueprintQualityChecker:
             + ((time_left - 1) * time_left // 2)
         )
 
-    @functools.lru_cache
     def check_blueprint_quality(self, res: Resources, t: int = 0):
         if t == self.runtime:
-            # print(resources)
             if res.geodes > self.max_geodes:
                 self.max_geodes = res.geodes
-                # print(f"Max Geodes = {self.max_geodes}")
             return res.geodes
 
         geode_upper_bound = self.upper_bound_geodes(res, t)
