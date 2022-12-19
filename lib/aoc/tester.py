@@ -34,23 +34,34 @@ class Tester(object):
         import atexit
         atexit.register(self.summary)
         self.now = time.time()
+        self.delta = self.now
 
     def test(self, test_state, message='', success_message=''):
         self._count += 1
+        delta = self.delta_time()
         if test_state:
             self._success += 1
-            print(green(f'\u2705  Test #{self._count} OK! {success_message}'))
+            print(green(f'\u2705  Test #{self._count} OK! {success_message} {delta}'))
         else:
             self._fails += 1
-            print(red(f'\u274C  Test #{self._count} Error! {message}'))
+            print(red(f'\u274C  Test #{self._count} Error! {message} {delta}'))
 
     def test_value(self, a, b, success_message=''):
         if '%s' in success_message:
             success_message = success_message % a
         self.test(a == b, f'{a} != {b}', success_message=yellow(success_message))
 
-    def test_value_neq(self, a, b):
-        self.test(a != b, f'{a} == {b}')
+    def test_value_neq(self, a, b, message=''):
+        self.test(a != b, f'{a} == {b} {message}')
+
+    def test_less_or_equal(self, a, b, message=''):
+        self.test(a <= b, f'{a} == {b} {message}')
+
+    def test_greater_than(self, a, b, message=''):
+        self.test(a > b, f'{a} > {b} {message}')
+
+    def test_less_than(self, a, b, message=''):
+        self.test(a < b, f'{a} < {b} {message}')
 
     def test_section(self, section_name):
         print(yellow(f'[{section_name}]'))
@@ -61,6 +72,11 @@ class Tester(object):
         else:
             print(green(f'Success! {self._success} test(s) ran successfully!'))
         print(yellow(f'Running time: {time.time() - self.now:0.04f} s.'))
+
+    def delta_time(self):
+        msg = blue(f"[\u0394 {time.time() - self.delta:0.04f} s.]")
+        self.delta = time.time()
+        return msg
 
 
 if __name__ == '__main__':
