@@ -78,6 +78,10 @@ class Tester(object):
         self.delta = time.time()
         return msg
 
+    def peek_delta_time(self, message=""):
+        timing = blue(f"[\u0394 {time.time() - self.delta:0.04f} s.]")
+        print(f"    {yellow(message)} {timing}")
+
 
 if __name__ == '__main__':
     for y in range(16):
