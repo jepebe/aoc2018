@@ -99,6 +99,22 @@ def print_map(grid, look_up=None, missing=None, func=None):
         print(''.join(row))
 
 
+def print_set(grid: set, marker="#", missing=".", border=0):
+    minx, maxx, miny, maxy = find_extents(grid)
+    minx -= border
+    miny -= border
+    maxx += border
+    maxy += border
+    for y in range(miny, maxy + 1):
+        row = []
+        for x in range(minx, maxx + 1):
+            if (x, y) not in grid:
+                row.append(missing)
+            else:
+                row.append(marker)
+        print(''.join(row))
+
+
 def lcm(a, b):
     """Least Common Multiple for two numbers"""
     return a * b // gcd(a, b)
