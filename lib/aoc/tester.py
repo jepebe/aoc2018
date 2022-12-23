@@ -35,6 +35,7 @@ class Tester(object):
         atexit.register(self.summary)
         self.now = time.time()
         self.delta = self.now
+        self.part = 1
 
     def test(self, test_state, message='', success_message=''):
         self._count += 1
@@ -50,6 +51,11 @@ class Tester(object):
         if '%s' in success_message:
             success_message = success_message % a
         self.test(a == b, f'{a} != {b}', success_message=yellow(success_message))
+
+    def test_solution(self, a, b):
+        msg = f"Solution to part {self.part}={a} 🥳"
+        self.test(a == b, f'{a} != {b} ☹️', success_message=green(msg))
+        self.part += 1
 
     def test_value_neq(self, a, b, message=''):
         self.test(a != b, f'{a} == {b} {message}')
