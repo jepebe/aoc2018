@@ -73,14 +73,16 @@ def rotate90(tile, ext=None):
     return new_tile
 
 
-def print_map(grid, look_up=None, missing=None, func=None):
+def print_map(grid, look_up=None, missing=None, func=None, missing_func=None):
     minx, maxx, miny, maxy = find_extents(grid)
 
     for y in range(miny, maxy + 1):
         row = []
         for x in range(minx, maxx + 1):
             if (x, y) not in grid:
-                if missing:
+                if missing_func:
+                    row.append(missing_func(grid, (x, y)))
+                elif missing:
                     row.append(missing)
                 else:
                     row.append(' ')
