@@ -79,7 +79,7 @@ class Tunnels:
         if time_left <= 0:
             return
 
-        if elephant and time_left < 16 and self.max_pressure - pressure > 150:
+        if elephant and time_left < 15 and self.max_pressure - pressure > 150:
             # maybe a _safe_ pressure diff can be calculated based on remaining valves?
             # maybe too aggressive, but it works...
             return
