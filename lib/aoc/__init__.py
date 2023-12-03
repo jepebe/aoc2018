@@ -4,10 +4,10 @@ from math import gcd
 from .tester import red, green, Tester, color, blue
 from .bfs import bfs, bfsf
 from .floyd_warshall import Distances, print_floyd_warshall, floyd_warshall
+from .grid import Grid2D, Coord, find_extents, find_extents_nd, iterate_grid, print_map
+from .grid import DIRECTIONS2D_4, DIRECTIONS2D_8
 from .tuple3 import Tuple3, cube_extents
 from itertools import zip_longest
-
-Extents = tuple[int, int, int, int]
 
 
 def grouper(n, iterable, fill_value=None) -> typing.Iterator:
@@ -21,21 +21,6 @@ def read_input(filename: str = "input") -> str:
     with open(filename) as f:
         data = f.read()
     return data
-
-
-def find_extents(grid) -> Extents:
-    minx = min(x[0] for x in grid)
-    miny = min(x[1] for x in grid)
-    maxx = max(x[0] for x in grid)
-    maxy = max(x[1] for x in grid)
-    return minx, maxx, miny, maxy
-
-
-def find_extents_nd(grid, d=4):
-    # Returns min, max pairs for each dimension
-    minv = tuple((min(v[i] for v in grid) for i in range(d)))
-    maxv = tuple((max(v[i] for v in grid) for i in range(d)))
-    return tuple(zip(minv, maxv))
 
 
 def transpose(tile):
@@ -71,50 +56,6 @@ def rotate90(tile, ext=None):
     for (x, y), c in tile.items():
         new_tile[ext[1][1] - y, x] = c  # combined transpose + flip horizontal
     return new_tile
-
-
-def print_map(grid, look_up=None, missing=None, func=None, missing_func=None):
-    minx, maxx, miny, maxy = find_extents(grid)
-
-    for y in range(miny, maxy + 1):
-        row = []
-        for x in range(minx, maxx + 1):
-            if (x, y) not in grid:
-                if missing_func:
-                    row.append(missing_func(grid, (x, y)))
-                elif missing:
-                    row.append(missing)
-                else:
-                    row.append(' ')
-            else:
-                value = grid[(x, y)]
-                if look_up:
-                    row.append(look_up[value])
-                elif func:
-                    row.append(func(grid, (x, y)))
-                else:
-                    if isinstance(value, bool):
-                        row.append('T' if value else 'F')
-                    else:
-                        row.append(value)
-
-        print(''.join(row))
-
-
-def print_set(grid: set, marker="#", missing=".", border=0):
-    minx, maxx, miny, maxy = find_extents(grid)
-    minx -= border
-    miny -= border
-    maxx += border
-    maxy += border
-    for y in range(miny, maxy + 1):
-        row = []
-        for x in range(minx, maxx + 1):
-            if (x, y) not in grid:
-                row.append(missing)
-            else:
-                row.append(marker)
-        print(''.join(row))
 
 
 def lcm(a, b):
