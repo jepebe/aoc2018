@@ -6,6 +6,7 @@ from .bfs import bfs, bfsf
 from .floyd_warshall import Distances, print_floyd_warshall, floyd_warshall
 from .grid import Grid2D, Coord, find_extents, find_extents_nd, iterate_grid, print_map
 from .grid import DIRECTIONS2D_4, DIRECTIONS2D_8
+from .range import Range
 from .tuple3 import Tuple3, cube_extents
 from itertools import zip_longest
 

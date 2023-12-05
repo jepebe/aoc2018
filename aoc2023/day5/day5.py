@@ -1,44 +1,8 @@
-import typing
-
 import aoc
 
+from aoc import Range
+
 tester = aoc.Tester("If You Give A Seed A Fertilizer")
-
-
-class Range:
-    def __init__(self, start, end):
-        self._start = start
-        self._end = end
-
-    def __contains__(self, item):
-        return self._start <= item < self._end
-
-    def __repr__(self):
-        return f"Range({self._start}, {self._end})"
-
-    def overlap(self, other: typing.Self) -> typing.Self:
-        if self._start in other:
-            return Range(self._start, min(self._end, other._end))
-        elif self._end in other:
-            return Range(max(self._start, other._start), self._end)
-        elif self._start <= other._start and other._end <= self._end:
-            return Range(other._start, other._end)
-        elif other._start <= self._start and self._end <= other._end:
-            return Range(self._start, self._end)
-        else:
-            return None
-
-    def __lt__(self, other: typing.Self):
-        return self._start < other._start
-
-    @property
-    def start(self):
-        return self._start
-
-    @property
-    def end(self):
-        return self._end
-
 
 Alamanac = list[dict[str, str | dict[Range, Range]]]
 
