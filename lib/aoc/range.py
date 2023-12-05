@@ -12,6 +12,7 @@ class Range:
         return self._start <= item < self._end
 
     def __repr__(self):
+        """Return the representation of this range."""
         return f"Range({self._start}, {self._end})"
 
     def overlap(self, other: typing.Self) -> typing.Self:
@@ -50,6 +51,10 @@ class Range:
     def end(self):
         return self._end
 
+    def __len__(self) -> int:
+        """Return the length of the range."""
+        return self._end - self._start
+
 
 if __name__ == '__main__':
     r1 = Range(0, 10)
@@ -77,3 +82,7 @@ if __name__ == '__main__':
     assert not r3 > r1
 
     assert hash(r1.overlap(r2)) == hash(Range(5, 10))
+
+    assert len(r1) == 10
+    assert len(r2) == 10
+    assert len(r3) == 5
