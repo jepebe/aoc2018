@@ -6,46 +6,40 @@ tester = aoc.Tester("Wait For It")
 def win_all_races(races: tuple[tuple[int, int], ...]) -> int:
     ways = 1
     for length, record in races:
-        winning_edge = find_winning_edge(0, length, length, record)
-        losing_edges = find_losing_edge(0, length, length, record)
+        winning_edge = find_crossover(0, length, length, record)
+        losing_edges = find_crossover(0, length, length, record, rising=False)
         ways *= losing_edges - winning_edge
     return ways
 
 
-def find_winning_edge(start: int, end: int, length: int, record: int) -> int:
-    """The edge where we start winning."""
+def find_crossover(start: int, end: int, length: int, record: int, rising: bool = True) -> int:
+    """Look for rising or falling edge. Crossover between winning and losing."""
     if start == end:
         return start
 
     pos = (start + end) // 2
     if pos * (length - pos) > record:
-        return find_winning_edge(start, pos, length, record)
+        if rising:
+            return find_crossover(start, pos, length, record, rising)
+        else:
+            return find_crossover(pos + 1, end, length, record, rising)
     else:
-        return find_winning_edge(pos + 1, end, length, record)
-
-
-def find_losing_edge(start: int, end: int, length: int, record: int) -> int:
-    """The edge where we start losing again."""
-    if start == end:
-        return start
-
-    pos = (start + end) // 2
-    if pos * (length - pos) > record:
-        return find_losing_edge(pos + 1, end, length, record)
-    else:
-        return find_losing_edge(start, pos, length, record)
+        if rising:
+            return find_crossover(pos + 1, end, length, record, rising)
+        else:
+            return find_crossover(start, pos, length, record, rising)
 
 
 def run_tests(t: aoc.Tester):
     t.test_section("Tests")
-    t.test_value(find_winning_edge(0, 7, 7, 9), 2)
-    t.test_value(find_losing_edge(0, 7, 7, 9), 6)
+    t.test_value(find_crossover(0, 7, 7, 9), 2)
+    t.test_value(find_crossover(0, 7, 7, 9, rising=False), 6)
 
-    t.test_value(find_winning_edge(0, 15, 15, 40), 4)
-    t.test_value(find_losing_edge(0, 15, 15, 40), 12)
+    t.test_value(find_crossover(0, 15, 15, 40), 4)
+    t.test_value(find_crossover(0, 15, 15, 40, rising=False), 12)
 
-    t.test_value(find_winning_edge(0, 30, 30, 200), 11)
-    t.test_value(find_losing_edge(0, 30, 30, 200), 20)
+    t.test_value(find_crossover(0, 30, 30, 200), 11)
+    t.test_value(find_crossover(0, 30, 30, 200, rising=False), 20)
 
     t.test_value(win_all_races(((7, 9), (15, 40), (30, 200))), 288)
     t.test_value(win_all_races(((71530, 940200),)), 71503)
