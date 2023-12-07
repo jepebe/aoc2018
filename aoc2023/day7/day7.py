@@ -21,13 +21,11 @@ class Hand:
         if self._type is not None:
             return self._type
 
-        hand_type = self._identify_type(self._cards)
-
-        self._type = hand_type
-        return hand_type
+        self._type = self._identify_hand_type(self._cards)
+        return self._type
 
     @staticmethod
-    def _identify_type(cards: str) -> str:
+    def _identify_hand_type(cards: str) -> str:
         num_distinct_cards = len(set(cards))
         card_counts = Counter(cards)
         match num_distinct_cards:
@@ -75,21 +73,21 @@ class Hand:
     def __hash__(self) -> int:
         return hash(self._cards)
 
-    def set_joker_mode(self):
+    def set_joker_mode(self, joker_mode: bool = True):
         if "J" in self._cards:
-            best_hand_type = self.type()
-            # best_replacement = "J"
-            for card in card_order:
-                if card == "J":
-                    continue
-                cards = self._cards.replace("J", card)
-                hand_type = self._identify_type(cards)
-                if hand_order.index(hand_type) < hand_order.index(best_hand_type):
-                    best_hand_type = hand_type
-                    # best_replacement = card
-            # print(f"Joker hand: {self._cards} {best_hand_type} {best_replacement}")
-            self._type = best_hand_type
-        self._joker_mode = True
+            if joker_mode:
+                best_hand_type = self.type()
+
+                for card in [card for card in self._cards if card != "J"]:
+                    cards = self._cards.replace("J", card)
+                    hand_type = self._identify_hand_type(cards)
+                    if hand_order.index(hand_type) < hand_order.index(best_hand_type):
+                        best_hand_type = hand_type
+
+                self._type = best_hand_type
+            else:
+                self._type = self._identify_hand_type(self._cards)
+        self._joker_mode = joker_mode
 
 
 def parse(data: str) -> dict[Hand, int]:
@@ -106,9 +104,9 @@ def parse(data: str) -> dict[Hand, int]:
 
 def score_hands(hands: dict[Hand, int], joker_mode: bool = False) -> int:
     total_winnings = 0
-    if joker_mode:
-        for hand in hands:
-            hand.set_joker_mode()
+    for hand in hands:
+        hand.set_joker_mode(joker_mode=joker_mode)
+
     for index, hand in enumerate(sorted(hands.keys()), start=1):
         bid = hands[hand]
         total_winnings += bid * index
@@ -140,6 +138,8 @@ def run_tests(t: aoc.Tester):
     t.test_value(sorted_hands, ["32T3K", "KK677", "T55J5", "QQQJA", "KTJJT"])
     t.test_greater_than(Hand("22222"), Hand("22J22"))
     t.test_value(total_winnings, 5905)
+
+    t.test_value(score_hands(hands, joker_mode=False), 6440)
 
 
 run_tests(tester)
