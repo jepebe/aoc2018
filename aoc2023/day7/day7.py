@@ -5,8 +5,15 @@ import aoc
 
 tester = aoc.Tester("Camel Cards")
 
-hand_order = ["five of a kind", "four of a kind", "full house", "three of a kind", "two pair",
-              "one pair", "high card"]
+hand_order = [
+    "five of a kind",
+    "four of a kind",
+    "full house",
+    "three of a kind",
+    "two pair",
+    "one pair",
+    "high card",
+]
 card_order = "AKQJT98765432"
 joker_card_order = "AKQT98765432J"
 
@@ -155,3 +162,11 @@ tester.test_section("Part 2")
 solution_2 = score_hands(hands, joker_mode=True)
 tester.test_less_than(solution_2, 255783389)
 tester.test_solution(solution_2, 255632664)
+
+tester.test_section("JIB")
+data = aoc.read_input("input_jib")
+hands = parse(data)
+solution_jb = score_hands(hands, joker_mode=True)
+tester.test_less_than(solution_jb, 249776931)
+tester.test_greater_than(solution_jb, 249645808)
+tester.test_solution(solution_jb, 249776650)
