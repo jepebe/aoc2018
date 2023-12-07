@@ -30,24 +30,25 @@ class Hand:
     def _identify_type(cards: str) -> str:
         num_distinct_cards = len(set(cards))
         card_counts = Counter(cards)
-        if num_distinct_cards == 1:
-            hand_type = "five of a kind"
-        elif num_distinct_cards == 2:
-            if 4 in card_counts.values():
-                hand_type = "four of a kind"
-            else:
-                hand_type = "full house"
-        elif num_distinct_cards == 3:
-            if 3 in card_counts.values():
-                hand_type = "three of a kind"
-            else:
-                hand_type = "two pair"
-        elif num_distinct_cards == 4:
-            hand_type = "one pair"
-        elif num_distinct_cards == 5:
-            hand_type = "high card"
-        else:
-            raise ValueError(f"Unexpected number of distinct cards: {num_distinct_cards}")
+        match num_distinct_cards:
+            case 1:
+                hand_type = "five of a kind"
+            case 2:
+                if 4 in card_counts.values():
+                    hand_type = "four of a kind"
+                else:
+                    hand_type = "full house"
+            case 3:
+                if 3 in card_counts.values():
+                    hand_type = "three of a kind"
+                else:
+                    hand_type = "two pair"
+            case 4:
+                hand_type = "one pair"
+            case 5:
+                hand_type = "high card"
+            case _:
+                raise ValueError(f"Unexpected number of distinct cards: {num_distinct_cards}")
         return hand_type
 
     def __repr__(self):
