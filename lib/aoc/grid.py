@@ -35,11 +35,14 @@ def find_extents_nd(grid, d=4):
 
 
 def iterate_grid(grid: Grid2D) -> tuple[int, int, typing.Any]:
-    """Iterates over a grid, yielding x, y and grid value at coordinate."""
+    """Iterates over a grid, yielding x, y and grid value at coordinate (None if missing)."""
     minx, maxx, miny, maxy = find_extents(grid)
     for y in range(miny, maxy + 1):
         for x in range(minx, maxx + 1):
-            yield x, y, grid[(x, y)]
+            if (x, y) in grid:
+                yield x, y, grid[(x, y)]
+            else:
+                yield x, y, None
 
 
 def print_map(
