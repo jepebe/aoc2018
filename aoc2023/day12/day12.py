@@ -3,105 +3,69 @@ import aoc
 tester = aoc.Tester("Hot Springs")
 
 
-def parse(data: str) -> list[tuple[str, list[int]]]:
+def parse(data: str) -> list[tuple[str, tuple[int, ...]]]:
     spring_list = []
     for line in data.splitlines():
-        springs, crc = line.split(" ")
-        crc = list(map(int, crc.split(",")))
-        spring_list.append((springs, crc))
-        # print(springs, crc)
+        springs, groups = line.split(" ")
+        groups = tuple(map(int, groups.split(",")))
+        spring_list.append((springs, groups))
 
     return spring_list
 
 
-def find_combos(memo: dict, springs: str, crc: list[int], current: str = "", group: int = 0) -> int:
-    # if current == "":
-    #     print(springs, crc)
+def find_combos(memo: dict, springs: str, groups: tuple[int, ...], current: int) -> int:
+    if (springs, groups, current) in memo:
+        return memo[(springs, groups, current)]
 
-    if current in memo:
-        return memo[current]
-
-    if len(current) == len(springs):
-        variant = current.replace(".", " ").split()
-
-        if len(crc) != len(variant):
-            return 0
-
-        variant = list(map(len, variant))
-        if crc == variant:
-            return 1
+    if springs == "" and len(groups) > 0:  # springs is empty but groups is not
         return 0
 
-    if springs[len(current)] == "?":
-        dot = find_combos(memo, springs, crc, current + ".")
-        octothorpe = find_combos(memo, springs, crc, current + "#")
-        memo[current] = dot + octothorpe
-        return dot + octothorpe
-    else:
-        return find_combos(memo, springs, crc, current + springs[len(current)])
+    if "#" in springs and groups == ():  # at least one spring remains but groups is empty
+        return 0
+
+    if groups == ():  # springs is either empty or only contains dots and question marks
+        return 1
+
+    if springs[0] == ".":
+        if current == groups[0]:  # finish last group
+            return find_combos(memo, springs[1:], groups[1:], 0)
+        elif 0 < current < groups[0]:  # group does not match current size
+            return 0
+        else:
+            return find_combos(memo, springs[1:], groups, 0)  # skip dot
+
+    if springs[0] == "#":
+        if current == groups[0]:  # current group will be too large
+            return 0
+        elif current < groups[0]:  # extend group
+            return find_combos(memo, springs[1:], groups, current + 1)
+        else:
+            raise Exception("This should not happen")
+
+    if springs[0] == "?":
+        # we will see what happens if we extend the group and if we skip the dot
+        extend = find_combos(memo, "#" + springs[1:], groups, current)
+        end = find_combos(memo, "." + springs[1:], groups, current)
+        memo[(springs, groups, current)] = extend + end
+        return extend + end
 
 
+def find_combos_unfolded(springs: str, groups: tuple[int, ...]) -> int:
+    springs = "?".join([springs for _ in range(5)]) + "."
+    return find_combos({}, springs, groups * 5, 0)
 
 
-# def find_combos(springs: str, crc: int, current: str) -> int:
-#     if len(current) == len(springs):
-#
-#         variant = current.replace(".", " ").split()
-#         variant = list(map(len, variant))
-#         if len(variant) == 1 and crc == variant[0]:
-#             return 1
-#         return 0
-#
-#     if springs[len(current)] == "?":
-#         return find_combos(springs, crc, current + ".") + find_combos(springs, crc, current + "#")
-#     else:
-#         return find_combos(springs, crc, current + springs[len(current)])
-
-
-# def find_combos_2(springs: str, crc: list[int], memo: dict) -> int:
-#     if springs in memo:
-#         return 0
-#
-#     spring_list = springs.replace(".", " ").split()
-#     if len(spring_list) == len(crc):
-#         combos = 1
-#         for spring, group in zip(spring_list, crc):
-#             if len(spring) < group:
-#                 # print("unpossible")
-#                 return 0  # this split is not possible
-#             if len(spring) == group:
-#                 combos *= 1
-#             if len(spring) > group:
-#                 if (spring, group) in big_memo:
-#                     cmb = big_memo[(spring, group)]
-#                 else:
-#                     cmb = find_combos(spring, group, "")
-#                     if (spring, group) not in big_memo:
-#                         big_memo[(spring, group)] = cmb
-#                 combos *= cmb
-#
-#         memo[springs] = combos
-#         print(springs, crc, combos)
-#         return combos
-#
-#     else:
-#         combos = 0
-#         for split in range(1, len(springs) - 1):
-#             if springs[split] == "?":
-#                 new_springs = springs[:split] + "." + springs[split + 1:]
-#                 combos += find_combos_2(new_springs, crc, memo)
-#         return combos
-
-
-def find_combos_unfolded(springs: str, crc: list[int]) -> int:
-    springs = "?".join([springs for _ in range(5)])
-    return find_combos(springs, crc * 5, "")
-
-
-def find_all_combos(springs: list[tuple[str, list[int]]]) -> int:
+def find_all_combos(spring_list: list[tuple[str, tuple[int, ...]]]) -> int:
     total = 0
-    for spring in springs:
-        total += find_combos({}, spring[0], spring[1])
+    for springs, groups in spring_list:
+        total += find_combos({}, springs + ".", groups, 0)
+    return total
+
+
+def find_all_combos_unfolded(spring_list: list[tuple[str, tuple[int, ...]]]) -> int:
+    total = 0
+    for springs, groups in spring_list:
+        total += find_combos_unfolded(springs, groups)
     return total
 
 
@@ -110,27 +74,33 @@ def run_tests(t: aoc.Tester):
     data = aoc.read_input("input_test")
     springs = parse(data)
 
-    t.test_value(find_combos({}, springs[0][0], springs[0][1]), 1)
-    t.test_value(find_combos({}, springs[1][0], springs[1][1]), 4)
-    t.test_value(find_combos({}, springs[2][0], springs[2][1]), 1)
-    t.test_value(find_combos({}, springs[3][0], springs[3][1]), 1)
-    t.test_value(find_combos({}, springs[4][0], springs[4][1]), 4)
-    t.test_value(find_combos({}, springs[5][0], springs[5][1]), 10)
+    t.test_value(find_combos({}, springs[0][0] + ".", springs[0][1], 0), 1)
+    t.test_value(find_combos({}, springs[1][0] + ".", springs[1][1], 0), 4)
+    t.test_value(find_combos({}, springs[2][0] + ".", springs[2][1], 0), 1)
+    t.test_value(find_combos({}, springs[3][0] + ".", springs[3][1], 0), 1)
+    t.test_value(find_combos({}, springs[4][0] + ".", springs[4][1], 0), 4)
+    t.test_value(find_combos({}, springs[5][0] + ".", springs[5][1], 0), 10)
 
     t.test_value(find_all_combos(springs), 21)
 
-    # t.test_value(find_combos_unfolded(springs[0][0], springs[0][1]), 1)
-    # t.test_value(find_combos_unfolded(springs[1][0], springs[1][1]), 16384)
+    t.test_value(find_combos_unfolded(springs[0][0], springs[0][1]), 1)
+    t.test_value(find_combos_unfolded(springs[1][0], springs[1][1]), 16384)
+    t.test_value(find_combos_unfolded(springs[2][0], springs[2][1]), 1)
+    t.test_value(find_combos_unfolded(springs[3][0], springs[3][1]), 16)
+    t.test_value(find_combos_unfolded(springs[4][0], springs[4][1]), 2500)
+    t.test_value(find_combos_unfolded(springs[5][0], springs[5][1]), 506250)
+
+    t.test_value(find_all_combos_unfolded(springs), 525152)
 
 
 run_tests(tester)
 
-data = aoc.read_input()
-springs = parse(data)
+spring_records = parse(aoc.read_input())
 
 tester.test_section("Part 1")
-solution_1 = find_all_combos(springs)
+solution_1 = find_all_combos(spring_records)
 tester.test_solution(solution_1, 6949)
 
 tester.test_section("Part 2")
-tester.test_solution(2, 208191)
+solution_2 = find_all_combos_unfolded(spring_records)
+tester.test_solution(solution_2, 51456609952403)
