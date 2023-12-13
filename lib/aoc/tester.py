@@ -29,6 +29,9 @@ def blue(text):
 def yellow(text):
     return color(text, 226)
 
+def grey(text):
+    return color(text, 240)
+
 
 class Tester(object):
 
@@ -60,6 +63,7 @@ class Tester(object):
         delta = self.delta_time()
         if test_state:
             self._success += 1
+            success_message = grey(success_message)
             print(green(f'{GREEN_CHECK}  Test #{self._count} OK! {success_message} {delta}'))
         else:
             self._fails += 1
@@ -71,21 +75,21 @@ class Tester(object):
         self.test(a == b, f'{a} != {b}', success_message=yellow(success_message))
 
     def test_solution(self, a, b):
-        msg = f"Solution to part {self.part}={a} {STAR}"
+        msg = f"Solution to part {self.part} = {a} {STAR}"
         self.test(a == b, f'{a} != {b} {FROWN}', success_message=green(msg))
         self.part += 1
 
     def test_value_neq(self, a, b, message=''):
-        self.test(a != b, f'{a} == {b} {message}')
+        self.test(a != b, f'{a} == {b} {message}', f'{a} != {b}')
 
     def test_less_or_equal(self, a, b, message=''):
-        self.test(a <= b, f'{a} == {b} {message}')
+        self.test(a <= b, f'{a} == {b} {message}', f'{a} <= {b}')
 
     def test_greater_than(self, a, b, message=''):
-        self.test(a > b, f'{a} > {b} {message}')
+        self.test(a > b, f'{a} > {b} {message}', f'{a} > {b}')
 
     def test_less_than(self, a, b, message=''):
-        self.test(a < b, f'{a} < {b} {message}')
+        self.test(a < b, f'{a} < {b} {message}', f'{a} < {b}')
 
     def test_section(self, section_name):
         print(yellow(f'[{section_name}]'))
