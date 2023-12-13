@@ -64,13 +64,15 @@ class Tester(object):
     def test(self, test_state, message="", success_message=""):
         self._count += 1
         delta = self.delta_time()
+        print(f"{delta} ", end="")
+        count = f"#{self._count}"
         if test_state:
             self._success += 1
             success_message = grey(success_message)
-            print(green(f"{GREEN_CHECK}  Test #{self._count} OK! {success_message} {delta}"))
+            print(green(F"{GREEN_CHECK}  Test {count:>3} OK! {success_message}"))
         else:
             self._fails += 1
-            print(red(f"{RED_CROSS}  Test #{self._count} Error! {message} {delta}"))
+            print(red(f"{RED_CROSS}  Test {count:>3} Error! {message}"))
 
     def test_value(self, a, b, success_message=""):
         if "%s" in success_message:
