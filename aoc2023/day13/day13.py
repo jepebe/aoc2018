@@ -147,6 +147,11 @@ def run_tests(t: aoc.Tester):
     patterns = parse(data)
     t.test_value(find_reflection(patterns[0]), ("v", 0, 1))
 
+    t.test_section("Test JIB")
+    data = aoc.read_input("input_test_jib")
+    patterns = parse(data)
+    t.test_value(smudge(patterns[0]), ("v", 7, 8))
+
 
 run_tests(tester)
 
