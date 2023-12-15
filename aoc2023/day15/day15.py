@@ -1,5 +1,3 @@
-import pprint
-
 import aoc
 
 tester = aoc.Tester("Lens Library")
