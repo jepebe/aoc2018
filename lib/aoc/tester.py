@@ -103,12 +103,14 @@ class Tester(object):
         self.test(a < b, f"{a} < {b} {message}", f"{a} < {b}")
 
     def test_section(self, section_name):
+        print()
         print(yellow(f"[{section_name}]"))
 
     def summary(self):
         trophy = ""
         running_time = time.time() - self.now
 
+        print()
         if self._exception_occurred:
             print(red(f"Error! Exception occurred after running {self._count} test(s)!"))
         elif self._fails > 0:
