@@ -41,23 +41,41 @@ def bounce(
         tile = grid[pos]
         match tile, direction:
             case ".", _:
-                queue.append((aoc.add_tuple(pos, direction), direction))
+                new_pos = aoc.add_tuple(pos, direction)
+                queue.append((new_pos, direction))
+
             case ("|", (0, 1)) | ("|", (0, -1)):
-                queue.append((aoc.add_tuple(pos, direction), direction))
+                new_pos = aoc.add_tuple(pos, direction)
+                queue.append((new_pos, direction))
+
             case ("|", (1, 0)) | ("|", (-1, 0)):
-                queue.append((aoc.add_tuple(pos, north), north))
-                queue.append((aoc.add_tuple(pos, south), south))
+                new_pos = aoc.add_tuple(pos, north)
+                queue.append((new_pos, north))
+
+                new_pos = aoc.add_tuple(pos, south)
+                queue.append((new_pos, south))
+
             case ("-", (1, 0)) | ("-", (-1, 0)):
-                queue.append((aoc.add_tuple(pos, direction), direction))
+                new_pos = aoc.add_tuple(pos, direction)
+                queue.append((new_pos, direction))
+
             case ("-", (0, 1)) | ("-", (0, -1)):
-                queue.append((aoc.add_tuple(pos, east), east))
-                queue.append((aoc.add_tuple(pos, west), west))
+                new_pos = aoc.add_tuple(pos, east)
+                queue.append((new_pos, east))
+
+                new_pos = aoc.add_tuple(pos, west)
+                queue.append((new_pos, west))
+
             case ("/", d):
                 direction = (-d[1], -d[0])  # rotate 90 degrees CCW
-                queue.append((aoc.add_tuple(pos, direction), direction))
+                new_pos = aoc.add_tuple(pos, direction)
+                queue.append((new_pos, direction))
+
             case ("\\", d):
                 direction = (d[1], d[0])  # rotate 90 degrees CW
-                queue.append((aoc.add_tuple(pos, direction), direction))
+                new_pos = aoc.add_tuple(pos, direction)
+                queue.append((new_pos, direction))
+
             case _, _:
                 raise ValueError(f"Unknown tile {tile} {direction}")
 
