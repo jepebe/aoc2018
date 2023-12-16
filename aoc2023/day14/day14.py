@@ -1,92 +1,74 @@
-from collections import namedtuple
-
 import aoc
 
 tester = aoc.Tester("Parabolic Reflector Dish")
 
-Extents = namedtuple("Extents", ["minx", "maxx", "miny", "maxy"])
+Rocks = list[tuple[int, int]]
 
 
-def parse_input(data: str) -> aoc.Grid2D:
+def parse_input(data: str) -> tuple[aoc.Grid2D, Rocks]:
     grid: aoc.Grid2D = {}
+    rocks: list[tuple[int, int]] = []
     for y, line in enumerate(data.splitlines()):
         for x, c in enumerate(line):
             grid[(x, y)] = c
+            if c == "O":
+                rocks.append((x, y))
 
-    return grid
+    return grid, rocks
 
 
-def slide_rock(grid: aoc.Grid2D, pos: tuple[int, int], dir: tuple[int, int]):
+def slide_rock(grid: aoc.Grid2D, pos: tuple[int, int], direction: tuple[int, int]):
     slide_pos = pos
-    next_pos = (pos[0] + dir[0], pos[1] + dir[1])
+    next_pos = (pos[0] + direction[0], pos[1] + direction[1])
     while next_pos in grid and grid[next_pos] == ".":
         slide_pos = next_pos
-        next_pos = (next_pos[0] + dir[0], next_pos[1] + dir[1])
+        next_pos = (next_pos[0] + direction[0], next_pos[1] + direction[1])
 
-    if slide_pos in grid and pos != slide_pos and grid[slide_pos] == ".":
+    if pos != slide_pos:
         grid[pos] = "."
         grid[slide_pos] = "O"
+    return slide_pos
 
 
-def slide_north(grid: aoc.Grid2D, extents: Extents) -> aoc.Grid2D:
-    for y in range(extents.miny, extents.maxy + 1):
-        for x in range(extents.minx, extents.maxx + 1):
-            c = grid[(x, y)]
+def slide(grid: aoc.Grid2D, rocks: Rocks, direction: tuple[int, int]) -> tuple[aoc.Grid2D, Rocks]:
+    if direction == (0, 1) or direction == (1, 0):
+        # if we are moving south or east, we need to reverse the rocks since we are going backwards
+        rocks = reversed(rocks)
 
-            if c == "O":
-                slide_rock(grid, (x, y), (0, -1))
-    return grid
+    new_rocks = []
+    for x, y in rocks:
+        new_pos = slide_rock(grid, (x, y), direction)
+        new_rocks.append(new_pos)
 
-
-def slide_west(grid: aoc.Grid2D, extents: Extents) -> aoc.Grid2D:
-    for y in range(extents.miny, extents.maxy + 1):
-        for x in range(extents.minx, extents.maxx + 1):
-            c = grid[(x, y)]
-
-            if c == "O":
-                slide_rock(grid, (x, y), (-1, 0))
-    return grid
+    return grid, sorted(new_rocks)
 
 
-def slide_south(grid: aoc.Grid2D, extents: Extents) -> aoc.Grid2D:
-    for y in range(extents.maxy, extents.miny - 1, -1):
-        for x in range(extents.minx, extents.maxx + 1):
-            c = grid[(x, y)]
-
-            if c == "O":
-                slide_rock(grid, (x, y), (0, 1))
-
-    return grid
+def cycle(grid: aoc.Grid2D, rocks: Rocks) -> tuple[aoc.Grid2D, Rocks]:
+    grid, rocks = slide(grid, rocks, (0, -1))
+    grid, rocks = slide(grid, rocks, (-1, 0))
+    grid, rocks = slide(grid, rocks, (0, 1))
+    grid, rocks = slide(grid, rocks, (1, 0))
+    return grid, rocks
 
 
-def slide_east(grid: aoc.Grid2D, extents: Extents) -> aoc.Grid2D:
-    for y in range(extents.miny, extents.maxy + 1):
-        for x in range(extents.maxx, extents.minx - 1, -1):
-            c = grid[(x, y)]
+def total_load(rocks: Rocks, maxy_y: int) -> int:
+    total = 0
 
-            if c == "O":
-                slide_rock(grid, (x, y), (1, 0))
+    for x, y in rocks:
+        total += maxy_y - y + 1
 
-    return grid
+    return total
 
 
-def cycle(grid: aoc.Grid2D, extents: Extents) -> aoc.Grid2D:
-    grid = slide_north(grid, extents)
-    grid = slide_west(grid, extents)
-    grid = slide_south(grid, extents)
-    grid = slide_east(grid, extents)
-    return grid
-
-
-def total_load_after(grid: aoc.Grid2D, cycles: int) -> int:
-    extents = Extents(*aoc.find_extents(grid))
+def total_load_after(grid: aoc.Grid2D, rocks: Rocks, cycles: int) -> int:
+    max_y = max(grid, key=lambda pos: pos[1])[1]  # max y value in grid
     cycle_hashes = {}
     cycle_loads = {}
     cycle_count = 0
     for _ in range(cycles):
-        grid = cycle(grid, extents)
+        grid, rocks = cycle(grid, rocks)
         cycle_count += 1
-        grid_hash = hash(frozenset(grid.items()))
+        grid_hash = hash(frozenset(rocks))
 
         if grid_hash in cycle_hashes:
             cycle_start = cycle_hashes[grid_hash]
@@ -95,50 +77,41 @@ def total_load_after(grid: aoc.Grid2D, cycles: int) -> int:
             return cycle_loads[cycle_start + extra_cycles]
         else:
             cycle_hashes[grid_hash] = cycle_count
-            cycle_loads[cycle_count] = total_load(grid, extents)
+            cycle_loads[cycle_count] = total_load(rocks, max_y)
 
-    # for small cycle sizes
+    # for small cycle sizes the result is found before any repeats
     return cycle_loads[cycles - 1]
-
-
-def total_load(grid: aoc.Grid2D, extents: Extents) -> int:
-    total = 0
-    for y in range(extents.miny, extents.maxy + 1):
-        for x in range(extents.minx, extents.maxx + 1):
-            c = grid[(x, y)]
-            if c == "O":
-                total += extents.maxy - y + 1
-
-    return total
 
 
 def run_tests(t: aoc.Tester):
     t.test_section("Tests")
     data = aoc.read_input("input_test")
-    grid = parse_input(data)
-    grid = slide_north(grid, Extents(*aoc.find_extents(grid)))
-    t.test_value(total_load(grid, Extents(*aoc.find_extents(grid))), 136)
+    grid, rocks = parse_input(data)
+    max_y = max(grid, key=lambda pos: pos[1])[1]
+    grid, rocks = slide(grid, rocks, (0, -1))
+    t.test_value(total_load(rocks, max_y), 136)
 
-    grid = parse_input(data)
-    grid_c1 = parse_input(aoc.read_input("input_test_cycle_1"))
-    grid_c2 = parse_input(aoc.read_input("input_test_cycle_2"))
-    grid_c3 = parse_input(aoc.read_input("input_test_cycle_3"))
+    grid, rocks = parse_input(data)
+    grid_c1, rocks_c1 = parse_input(aoc.read_input("input_test_cycle_1"))
+    grid_c2, rocks_c2 = parse_input(aoc.read_input("input_test_cycle_2"))
+    grid_c3, rocks_c3 = parse_input(aoc.read_input("input_test_cycle_3"))
 
-    grid = cycle(grid, Extents(*aoc.find_extents(grid)))
-    t.test_value(grid, grid_c1)
+    grid, rocks = cycle(grid, rocks)
+    t.test_value(set(rocks), set(rocks_c1))
 
-    grid = cycle(grid, Extents(*aoc.find_extents(grid)))
-    t.test_value(grid, grid_c2)
+    grid, rocks = cycle(grid, rocks)
+    t.test_value(set(rocks), set(rocks_c2))
 
-    grid = cycle(grid, Extents(*aoc.find_extents(grid)))
-    t.test_value(grid, grid_c3)
+    grid, rocks = cycle(grid, rocks)
+    t.test_value(set(grid), set(grid_c3))
 
-    grid = parse_input(data)
-    load = total_load_after(grid, 3)
-    t.test_value(load, total_load(grid_c3, Extents(*aoc.find_extents(grid_c3))))
+    grid, rocks = parse_input(data)
+    load = total_load_after(grid, rocks, 3)
+    max_y_c3 = max(grid_c3, key=lambda pos: pos[1])[1]
+    t.test_value(load, total_load(rocks_c3, max_y_c3))
 
-    grid = parse_input(data)
-    load = total_load_after(grid, 1000000000)
+    grid, rocks = parse_input(data)
+    load = total_load_after(grid, rocks, 1000000000)
     t.test_value(load, 64)
 
 
@@ -147,12 +120,13 @@ run_tests(tester)
 data = aoc.read_input()
 
 tester.test_section("Part 1")
-grid = parse_input(data)
-grid = slide_north(grid, Extents(*aoc.find_extents(grid)))
-solution_1 = total_load(grid, Extents(*aoc.find_extents(grid)))
+grid, rocks = parse_input(data)
+max_y = max(grid, key=lambda pos: pos[1])[1]
+grid, rocks = slide(grid, rocks, (0, -1))
+solution_1 = total_load(rocks, max_y)
 tester.test_solution(solution_1, 109654)
 
 tester.test_section("Part 2")
-grid = parse_input(data)
-solution_2 = total_load_after(grid, 1000000000)
+grid, rocks = parse_input(data)
+solution_2 = total_load_after(grid, rocks, 1000000000)
 tester.test_solution(solution_2, 94876)
