@@ -46,7 +46,8 @@ def bfs(grid: aoc.Grid2D, min_distance: int = 1, max_distance: int = 3) -> int:
                     break
 
                 next_heat_loss += grid[nx, ny]
-                if i >= min_distance:
+                # more important to avoid adding to the queue than to skip later if already visited
+                if i >= min_distance and ((nx, ny), (dx, dy)) not in visited:
                     heapq.heappush(queue, (next_heat_loss, (nx, ny), (dx, dy)))
 
     assert False, "No path found"
