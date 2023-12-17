@@ -39,8 +39,9 @@ def bfs(grid: aoc.Grid2D, min_distance: int = 1, max_distance: int = 3) -> int:
                 continue
 
             next_heat_loss = heat_loss
+            nx, ny = pos
             for i in range(1, max_distance + 1):
-                nx, ny = pos[0] + dx * i, pos[1] + dy * i
+                nx, ny = nx + dx, ny + dy
 
                 if (nx, ny) not in grid:
                     break
