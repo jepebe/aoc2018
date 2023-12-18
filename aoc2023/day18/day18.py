@@ -60,6 +60,19 @@ def shoelace(points: list[tuple[int, int]]) -> int:
     # picks theorem
     interior = area + boundary / 2 + 1  # do not understand +1 instead of -1 here ¯\_(ツ)_/¯
 
+    # Reddit explanation:
+    # - The formula given on the Wiki page needs some manipulation.
+    #   Pick's theorem says that A = i + b / 2 - 1, where A is the area of the
+    #   polygon, i is the number of internal integer points, and b is the number of
+    #   boundary integer points.
+    # - We have Area from the Shoelace Formula, and we have the number of boundary
+    #   points with the perimeter. We want the internal points, so we have some algebra to do.
+    # - Solve for i by subtracting b/2 - 1 from both sides, getting i = A - b / 2 + 1.
+    #   Note from the given example that you can get the number of enclosed points
+    #   with just this formula. But we have a little more work to do.
+    # - Add the perimeter, since those boundary points are also counted.
+    #   Thus, our formula is A - b / 2 + 1 + b = A + b / 2 + 1
+
     return int(interior)
 
 
