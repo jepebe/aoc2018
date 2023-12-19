@@ -1,5 +1,3 @@
-from pprint import pprint
-
 import aoc
 
 tester = aoc.Tester("Aplenty")
@@ -38,49 +36,37 @@ def workflow_expr(workflow: str) -> callable:
     return f
 
 
-def less_than(category: str, value: int) -> callable:
+def compare(category: str, value: int, comparator: str) -> callable:
     def f(ratings: Rating) -> tuple[Rating, Rating]:
-        gte = aoc.Range(0, 0)
-        lt = aoc.Range(0, 0)
+        true_range = aoc.Range(0, 0)
+        false_range = aoc.Range(0, 0)
 
         r = ratings[category]
-        if value in r:
-            lt = aoc.Range(r.start, value)
-            gte = aoc.Range(value, r.end)
-        elif r.end <= value:
-            lt = r
-        else:
-            gte = r
+        if comparator == "<":
+            # with less than, the low end of the range is the true range
+            if value in r:
+                true_range = aoc.Range(r.start, value)
+                false_range = aoc.Range(value, r.end)
+            elif r.end <= value:
+                true_range = r
+            else:
+                false_range = r
 
-        lt_rating = {c: r for c, r in ratings.items()}
-        lt_rating[category] = lt
-        gte_rating = {c: r for c, r in ratings.items()}
-        gte_rating[category] = gte
-        return lt_rating, gte_rating
+        elif comparator == ">":
+            # with greater than, the high end of the range is the true range
+            if value in r:
+                false_range = aoc.Range(r.start, value + 1)
+                true_range = aoc.Range(value + 1, r.end)
+            elif r.end < value:
+                false_range = r
+            else:
+                true_range = r
 
-    return f
-
-
-def greater_than(category: str, value: int) -> callable:
-    def f(ratings: Rating) -> tuple[Rating, Rating]:
-        gt = aoc.Range(0, 0)
-        lte = aoc.Range(0, 0)
-
-        r = ratings[category]
-        if value in r:
-            lte = aoc.Range(r.start, value + 1)
-            gt = aoc.Range(value + 1, r.end)
-        elif r.end < value:
-            lte = r
-        else:
-            gt = r
-
-        lte_rating = {c: r for c, r in ratings.items()}
-        lte_rating[category] = lte
-        gt_rating = {c: r for c, r in ratings.items()}
-        gt_rating[category] = gt
-
-        return gt_rating, lte_rating
+        true_rating = {c: r for c, r in ratings.items()}
+        true_rating[category] = true_range
+        false_rating = {c: r for c, r in ratings.items()}
+        false_rating[category] = false_range
+        return true_rating, false_rating
 
     return f
 
@@ -107,25 +93,15 @@ def parse_workflow(workflow: str) -> callable:
     cond, actions = workflow[:index], workflow[index + 1 :]
     if "<" in cond:
         index = cond.index("<")
-        category = cond[:index]
-        value = cond[index + 1 :]
-        cond_expr = less_than(category, int(value))
-        index = actions.index(",")
-        true_action = parse_workflow(actions[:index])
-        false_action = parse_workflow(actions[index + 1 :])
-        return conditional_expr(cond_expr, true_action, false_action)
-
-    elif ">" in cond:
-        index = cond.index(">")
-        category = cond[:index]
-        value = cond[index + 1 :]
-        index = actions.index(",")
-        cond_expr = greater_than(category, int(value))
-        true_action = parse_workflow(actions[:index])
-        false_action = parse_workflow(actions[index + 1 :])
-        return conditional_expr(cond_expr, true_action, false_action)
     else:
-        raise ValueError(f"Invalid workflow: '{workflow}'")
+        index = cond.index(">")
+    category = cond[:index]
+    value = cond[index + 1 :]
+    cond_expr = compare(category, int(value), cond[index])
+    index = actions.index(",")
+    true_action = parse_workflow(actions[:index])
+    false_action = parse_workflow(actions[index + 1 :])
+    return conditional_expr(cond_expr, true_action, false_action)
 
 
 def parse(data: str) -> tuple[Workflows, list[dict[str, int]]]:
@@ -152,6 +128,14 @@ def parse(data: str) -> tuple[Workflows, list[dict[str, int]]]:
     return workflows, rating_list
 
 
+def rating_is_valid(rating: dict[str, int], valid_ranges: dict[str, aoc.Range]):
+    valid = rating["x"] in valid_ranges["x"]
+    valid = valid and rating["m"] in valid_ranges["m"]
+    valid = valid and rating["a"] in valid_ranges["a"]
+    valid = valid and rating["s"] in valid_ranges["s"]
+    return valid
+
+
 def process(workflows: Workflows, ratings: list[dict[str, int]]) -> int:
     rating_ranges = {
         "x": aoc.Range(1, 4001),
@@ -165,14 +149,7 @@ def process(workflows: Workflows, ratings: list[dict[str, int]]) -> int:
     valid_ratings = []
     for rating in ratings:
         for valid_ranges in accepted:
-            valid = True
-            for category in "xmas":
-                valid_range = valid_ranges[category]
-                if rating[category] not in valid_range:
-                    valid = False
-                    break
-
-            if valid:
+            if rating_is_valid(rating, valid_ranges):
                 valid_ratings.append(rating)
                 break
 
