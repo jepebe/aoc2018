@@ -3,7 +3,7 @@ import typing
 
 class Range:
     def __init__(self, start, end):
-        """Create a range instance."""
+        """Create a range instance [start, end>."""
         self._start = start
         self._end = end
 

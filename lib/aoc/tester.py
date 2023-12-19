@@ -80,7 +80,13 @@ class Tester(object):
         elif success_message == "":
             success_message = f"{a} == {b}"
 
-        self.test(a == b, f"{a} == {b}", success_message=success_message)
+        message = f"{a} == {b}"
+        if isinstance(a, int) or isinstance(b, int):
+            diff = a - b
+            delta = grey(f"{diff} {'too high' if diff > 0 else 'too low'}")
+            message = f"{a} == {b} {delta}"
+
+        self.test(a == b, message, success_message=success_message)
 
     def test_solution(self, a, b):
         msg = f"Solution to part {self.part} = {a} {STAR}"
