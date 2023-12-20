@@ -79,34 +79,59 @@ class Tester(object):
             success_message = success_message % a
         elif success_message == "":
             success_message = f"{a} == {b}"
+            if isinstance(a, int) and isinstance(b, int):
+                success_message = f"{a:,} == {b:,}"
 
         message = f"{a} == {b}"
-        if isinstance(a, int) or isinstance(b, int):
+        if isinstance(a, int) and isinstance(b, int):
             diff = a - b
-            delta = grey(f"{diff} {'too high' if diff > 0 else 'too low'}")
-            message = f"{a} == {b} {delta}"
+            delta = grey(f"{diff:,} {'too high' if diff > 0 else 'too low'}")
+            message = f"{a:,} == {b:,} {delta}"
 
         self.test(a == b, message, success_message=success_message)
 
     def test_solution(self, a, b):
-        msg = f"Solution to part {self.part} = {a} {STAR}"
-        self.test(a == b, f"{a} != {b} {FROWN}", success_message=green(msg))
+        msg = f"Solution to part {self.part} = {a:,} {STAR}"
+        message = f"{a} != {b}"
+
+        if isinstance(a, int) and isinstance(b, int):
+            message = f"{a:,} != {b:,}"
+
+        # we add a frown if the solution is not correct and the raw (human unreadable) value of a
+        message = f"{message} {FROWN} {grey(f'{a}')}"
+
+        self.test(a == b, message, success_message=green(msg))
         self.part += 1
 
     def test_value_neq(self, a, b, message=""):
-        self.test(a != b, f"{a} != {b} {message}", f"{a} != {b}")
+        cmp = f"{a} != {b}"
+        if isinstance(a, int) and isinstance(b, int):
+            cmp = f"{a:,} != {b:,}"
+        self.test(a != b, f"{cmp} {message}", f"{cmp}")
 
     def test_less_or_equal(self, a, b, message=""):
-        self.test(a <= b, f"{a} <= {b} {message}", f"{a} <= {b}")
+        cmp = f"{a} <= {b}"
+        if isinstance(a, int) and isinstance(b, int):
+            cmp = f"{a:,} <= {b:,}"
+        self.test(a <= b, f"{cmp} {message}", f"{cmp}")
 
     def test_greater_or_equal(self, a, b, message=""):
-        self.test(a >= b, f"{a} >= {b} {message}", f"{a} >= {b}")
+        cmp = f"{a} >= {b}"
+        if isinstance(a, int) and isinstance(b, int):
+            cmp = f"{a:,} >= {b:,}"
+        self.test(a >= b, f"{cmp} {message}", f"{cmp}")
 
     def test_greater_than(self, a, b, message=""):
-        self.test(a > b, f"{a} > {b} {message}", f"{a} > {b}")
+        cmp = f"{a} > {b}"
+        if isinstance(a, int) and isinstance(b, int):
+            cmp = f"{a:,} > {b:,}"
+        self.test(a > b, f"{cmp} {message}", f"{cmp}")
 
     def test_less_than(self, a, b, message=""):
-        self.test(a < b, f"{a} < {b} {message}", f"{a} < {b}")
+        cmp = f"{a} < {b}"
+        if isinstance(a, int) and isinstance(b, int):
+            cmp = f"{a:,} < {b:,}"
+        self.test(a < b, f"{cmp} {message}", f"{cmp}")
 
     def test_section(self, section_name):
         print()
@@ -155,31 +180,43 @@ if __name__ == "__main__":
     tester.test_less_than(1, 2)
     tester.test_less_than(1, 1)
     tester.test_less_than(2, 1)
+    tester.test_less_than(2000000000000, 1000000000000)
+    tester.test_less_than(1000000000000, 2000000000000)
 
     tester.test_section("<=")
     tester.test_less_or_equal(1, 2)
     tester.test_less_or_equal(1, 1)
     tester.test_less_or_equal(2, 1)
+    tester.test_less_or_equal(2000000000000, 1000000000000)
+    tester.test_less_or_equal(1000000000000, 2000000000000)
 
     tester.test_section(">")
     tester.test_greater_than(1, 2)
     tester.test_greater_than(1, 1)
     tester.test_greater_than(2, 1)
+    tester.test_greater_than(2000000000000, 1000000000000)
+    tester.test_greater_than(1000000000000, 2000000000000)
 
     tester.test_section(">=")
     tester.test_greater_or_equal(1, 2)
     tester.test_greater_or_equal(1, 1)
     tester.test_greater_or_equal(2, 1)
+    tester.test_greater_or_equal(2000000000000, 1000000000000)
+    tester.test_greater_or_equal(1000000000000, 2000000000000)
 
     tester.test_section("!=")
     tester.test_value_neq(1, 2)
     tester.test_value_neq(1, 1)
     tester.test_value_neq(2, 1)
+    tester.test_value_neq(2000000000000, 1000000000000)
+    tester.test_value_neq(2000000000000, 2000000000000)
 
     tester.test_section("==")
     tester.test_value(1, 2)
     tester.test_value(1, 1)
     tester.test_value(2, 1)
+    tester.test_less_or_equal(2000000000000, 1000000000000)
+    tester.test_less_or_equal(1000000000000, 2000000000000)
 
     tester.test_section("check")
     tester.test(1 == 1, "failure", "success")
@@ -188,3 +225,5 @@ if __name__ == "__main__":
     tester.test_section("Solution")
     tester.test_solution(1, 1)
     tester.test_solution(1, 2)
+    tester.test_solution(2000000000000, 1000000000000)
+    tester.test_solution(2000000000000, 2000000000000)
