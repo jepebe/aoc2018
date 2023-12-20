@@ -19,7 +19,7 @@ def parse(data: str) -> dict[str, dict]:
 
 
 def pulse(
-    graph: dict[str, dict], mem: dict, track: list[str] = None, debug: bool = False
+    graph: dict[str, dict], mem: dict, track: str = None, debug: bool = False
 ) -> tuple[int, int, list[str]]:
     low_pulses = 0
     high_pulses = 0
@@ -28,7 +28,8 @@ def pulse(
     while queue:
         pulse, name, sender = queue.pop(0)
 
-        if track and pulse == "high" and name in track:
+        if track and pulse == "high" and name == track:
+            # we want all the senders to the tracked node
             tracked.append(sender)
 
         if debug:
@@ -41,7 +42,6 @@ def pulse(
                 high_pulses += 1
 
         if name not in graph:
-            # print(f"unknown node: {name}")
             mem[name] = {}
             t = "debug"
             dest = []
@@ -100,7 +100,9 @@ def pulser(
 
     track = None
     if rx_mode:
-        track = ["ll"]
+        # in rx_mode we track the cycles of the tracked node
+        # the assumption is that we need to find the periodicity of the senders to the tracked node
+        track = "ll"
 
     tracked_cycles = {}
     diff_cycles = {}
@@ -125,9 +127,12 @@ def pulser(
                 break
 
         counter += 1
+
     if rx_mode:
+        # we need to find the least common multiple of all the cycles
         lcm = aoc.lcms(*(int(v) for v in diff_cycles.values()))
         return lcm
+
     return low_pulses * high_pulses
 
 
@@ -152,4 +157,4 @@ tester.test_solution(solution_1, 743090292)
 tester.test_section("Part 2")
 solution_2 = pulser(-1, graph, rx_mode=True)
 tester.test_greater_than(solution_2, 49140182360)
-tester.test_solution(solution_2, 0)
+tester.test_solution(solution_2, 241528184647003)
