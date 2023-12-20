@@ -102,7 +102,7 @@ def pulser(
     if rx_mode:
         # in rx_mode we track the cycles of the tracked node
         # the assumption is that we need to find the periodicity of the senders to the tracked node
-        track = "ll"
+        track = "ll"  # parent of the rx node
 
     tracked_cycles = {}
     diff_cycles = {}
