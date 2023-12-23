@@ -117,7 +117,7 @@ def find_longest_path_in_graph(
 
         if pos == next_to_last[0]:
             # we reached the next to last junction, we do not need to check any
-            # other paths than towards the exit
+            # other paths than towards the exit (or we will never be able to return...)
             neighbors = exit_path
         else:
             neighbors = graph[pos]
