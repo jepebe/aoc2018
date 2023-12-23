@@ -105,6 +105,9 @@ def find_longest_path_in_graph(
     end: tuple[int, int],
 ) -> int:
     queue = [(0, start, {start})]
+    next_to_last = list(graph[end])[0]
+    exit_path = [path for path in graph[next_to_last[0]] if path[0] == end]
+
     max_dist = 0
     while queue:
         dist, pos, path = heapq.heappop(queue)
@@ -112,13 +115,17 @@ def find_longest_path_in_graph(
         if pos == end:
             max_dist = min(max_dist, dist)
 
-        try:
-            for next_pos, next_dist in graph[pos]:
-                if next_pos not in path:
-                    new_path = set(path) | {next_pos}
-                    heapq.heappush(queue, (dist - next_dist, next_pos, new_path))
-        except ValueError:
-            print(pos, graph[pos])
+        if pos == next_to_last[0]:
+            # we reached the next to last junction, we do not need to check any
+            # other paths than towards the exit
+            neighbors = exit_path
+        else:
+            neighbors = graph[pos]
+
+        for next_pos, next_dist in neighbors:
+            if next_pos not in path:
+                new_path = set(path) | {next_pos}
+                heapq.heappush(queue, (dist - next_dist, next_pos, new_path))
 
     return -max_dist
 
