@@ -131,7 +131,7 @@ def smash(particles: list[Particle]) -> int:
     sympy.init_printing(use_unicode=True)
     symbols.append(sympy.Symbol("dx dy dz"))
     eqs = []
-    for i, p in enumerate(particles[:4]):
+    for i, p in enumerate(particles[:3]):
         symbols.append(sympy.Symbol(f"t{i}"))
         eqs.append(sympy.sympify(f"{p.x} + {p.dx} * t{i} - x - dx * t{i}"))
         eqs.append(sympy.sympify(f"{p.y} + {p.dy} * t{i} - y - dy * t{i}"))
