@@ -16,7 +16,7 @@ def parse(data: str) -> nx.Graph:
     return graph
 
 
-def snowerload(graph: nx.Graph) -> int:
+def snowverload(graph: nx.Graph) -> int:
     for n1 in graph.nodes:
         for n2 in graph.nodes:
             if n1 == n2:
@@ -37,7 +37,7 @@ def run_tests(t: aoc.Tester):
 
     # failed to make Kargers terminate for input, resolved to use networkx :(
 
-    t.test_value(snowerload(g), 54)
+    t.test_value(snowverload(g), 54)
 
 
 run_tests(tester)
@@ -46,5 +46,5 @@ data = aoc.read_input()
 graph = parse(data)
 
 tester.test_section("Part 1")
-solution_1 = snowerload(graph)
+solution_1 = snowverload(graph)
 tester.test_solution(solution_1, 538368)
